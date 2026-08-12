@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>Assets\pet.ico</ApplicationIcon>
+    <AssemblyName>小欧公爵和小耶牧师</AssemblyName>
+    <RootNamespace>PetFriends</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Assets\cat.png" />
+    <Resource Include="Assets\dog.png" />
+    <Resource Include="Assets\cuddle.png" />
+  </ItemGroup>
+</Project>
