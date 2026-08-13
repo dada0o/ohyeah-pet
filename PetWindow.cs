@@ -8,6 +8,7 @@ using System.Windows.Shapes;
 using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
 using Cursors = System.Windows.Input.Cursors;
+using ContextMenu = System.Windows.Controls.ContextMenu;
 using FontFamily = System.Windows.Media.FontFamily;
 using Image = System.Windows.Controls.Image;
 using Point = System.Windows.Point;
@@ -80,14 +81,17 @@ internal sealed class PetWindow : Window
             Child = _speech,
             HorizontalAlignment = WpfHorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Bottom,
-            Visibility = Visibility.Hidden,
-            Effect = new System.Windows.Media.Effects.DropShadowEffect
+            Visibility = Visibility.Hidden
+        };
+        if (!Compat.IsLegacyWindows)
+        {
+            _bubble.Effect = new System.Windows.Media.Effects.DropShadowEffect
             {
                 BlurRadius = 8,
                 Opacity = .18,
                 ShadowDepth = 2
-            }
-        };
+            };
+        }
         Grid.SetRow(_bubble, 0);
         root.Children.Add(_bubble);
 
@@ -112,7 +116,9 @@ internal sealed class PetWindow : Window
             Cursor = Cursors.Hand,
             ToolTip = $"{petName}：单击摸摸，按住拖动，右键看菜单"
         };
-        RenderOptions.SetBitmapScalingMode(_petImage, BitmapScalingMode.HighQuality);
+        RenderOptions.SetBitmapScalingMode(
+            _petImage,
+            Compat.IsLegacyWindows ? BitmapScalingMode.LowQuality : BitmapScalingMode.HighQuality);
         _petImage.MouseLeftButtonDown += OnMouseLeftButtonDown;
         _petImage.MouseRightButtonUp += OnMouseRightButtonUp;
         stage.Children.Add(_petImage);
@@ -228,14 +234,15 @@ internal sealed class PetWindow : Window
         Wiggle();
         if (!string.IsNullOrWhiteSpace(glyph))
         {
-            Burst(glyph, Color.FromRgb(100, 158, 196));
+            Burst(glyph!, Color.FromRgb(100, 158, 196));
         }
     }
 
     public void Burst(string glyph, Color color)
     {
-        var random = Random.Shared;
-        for (var index = 0; index < 5; index++)
+        var random = Compat.Random;
+        var particleCount = Compat.IsLegacyWindows ? 3 : 5;
+        for (var index = 0; index < particleCount; index++)
         {
             var mark = new TextBlock
             {
@@ -269,7 +276,7 @@ internal sealed class PetWindow : Window
         if (!enabled) _petImage.Clip = null;
     }
 
-    public void SetEdgePeekPose(bool enabled, bool fromLeft, bool showPaws = true)
+    public void SetEdgePeekPose(bool enabled, bool fromLeft, bool showPaws = true, bool reverseLean = false)
     {
         if (!enabled)
         {
@@ -280,9 +287,11 @@ internal sealed class PetWindow : Window
         }
         _petImage.Clip = null;
         _rotate.BeginAnimation(RotateTransform.AngleProperty, null);
-        // In WPF's screen coordinate system, negative is counterclockwise and
-        // positive is clockwise. Left-edge peeks lean left; right-edge peeks lean right.
-        _rotate.Angle = fromLeft ? -18 : 18;
+        // Window-edge peeks lean outward: left is counterclockwise, right is clockwise.
+        // Screen-edge hiding uses the opposite lean so the pets follow their motion
+        // into the screen boundary: left is clockwise, right is counterclockwise.
+        var angle = fromLeft ? -18d : 18d;
+        _rotate.Angle = reverseLean ? -angle : angle;
         FaceDirection(fromLeft ? 1 : -1);
     }
 

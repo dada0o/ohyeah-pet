@@ -32,11 +32,11 @@ chmod +x PetFriends.Mac/build-macos.sh
 输出位置：
 
 ```text
-PetFriends.Mac/dist/osx-arm64/小欧公爵和小耶牧师.app
-PetFriends.Mac/dist/osx-arm64/PetFriends-osx-arm64.zip
+PetFriends.Mac/dist/osx-arm64/小欧公爵和小耶牧师桌宠.app
+PetFriends.Mac/dist/osx-arm64/小欧公爵和小耶牧师桌宠-macOS-arm64.zip
 ```
 
-发布包是自包含版本，目标 Mac 不需要另装 .NET。
+发布包是自包含版本，目标 Mac 不需要安装或下载 .NET。解压对应芯片版本后，双击 `小欧公爵和小耶牧师桌宠.app` 即可运行。
 
 ## 首次打开
 

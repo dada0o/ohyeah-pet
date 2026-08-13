@@ -14,7 +14,7 @@ case "$ARCH" in
     ;;
 esac
 
-APP_NAME="小欧公爵和小耶牧师"
+APP_NAME="小欧公爵和小耶牧师桌宠"
 PUBLISH_DIR="$SCRIPT_DIR/bin/publish/$RID"
 DIST_DIR="$SCRIPT_DIR/dist/$RID"
 APP_DIR="$DIST_DIR/$APP_NAME.app"
@@ -54,7 +54,7 @@ iconutil -c icns "$ICONSET_DIR" -o "$APP_DIR/Contents/Resources/AppIcon.icns"
 # replace this with a Developer ID signature and notarization later.
 codesign --force --deep --sign - "$APP_DIR"
 
-ZIP_PATH="$DIST_DIR/PetFriends-$RID.zip"
+ZIP_PATH="$DIST_DIR/$APP_NAME-macOS-$ARCH.zip"
 ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "$ZIP_PATH"
 
 echo "Built: $APP_DIR"

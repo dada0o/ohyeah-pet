@@ -1,16 +1,25 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
     <ApplicationIcon>Assets\pet.ico</ApplicationIcon>
-    <AssemblyName>小欧公爵和小耶牧师</AssemblyName>
+    <AssemblyName>小欧公爵和小耶牧师桌宠-Win7兼容版</AssemblyName>
     <RootNamespace>PetFriends</RootNamespace>
     <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**;PetFriends.Mac\**</DefaultItemExcludes>
+    <AppConfig>App.Win7.config</AppConfig>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>false</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+  </ItemGroup>
+
   <ItemGroup>
     <Resource Include="Assets\cat.png" />
     <Resource Include="Assets\dog.png" />

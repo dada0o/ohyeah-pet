@@ -35,6 +35,6 @@ jobs:
       - name: Upload app archive
         uses: actions/upload-artifact@v4
         with:
-          name: PetFriends-osx-${{ matrix.arch }}
-          path: PetFriends.Mac/dist/osx-${{ matrix.arch }}/PetFriends-osx-${{ matrix.arch }}.zip
+          name: 小欧公爵和小耶牧师桌宠-macOS-${{ matrix.arch }}
+          path: PetFriends.Mac/dist/osx-${{ matrix.arch }}/小欧公爵和小耶牧师桌宠-macOS-${{ matrix.arch }}.zip
           if-no-files-found: error

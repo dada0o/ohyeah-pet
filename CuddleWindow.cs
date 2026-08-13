@@ -38,7 +38,9 @@ internal sealed class CuddleWindow : Window
             RenderTransformOrigin = new Point(.5, .75),
             RenderTransform = _scale
         };
-        RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
+        RenderOptions.SetBitmapScalingMode(
+            image,
+            Compat.IsLegacyWindows ? BitmapScalingMode.LowQuality : BitmapScalingMode.HighQuality);
         grid.Children.Add(image);
 
         _caption = new TextBlock
