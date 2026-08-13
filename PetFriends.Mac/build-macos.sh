@@ -72,6 +72,7 @@ ln -s /Applications "$DIST_DIR/Applications"
 hdiutil create \
   -volname "$APP_NAME" \
   -srcfolder "$DIST_DIR" \
+  -size 512m \
   -ov \
   -format UDZO \
   "$DMG_WORK_PATH" >/dev/null
