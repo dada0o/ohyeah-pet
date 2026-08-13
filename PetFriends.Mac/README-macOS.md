@@ -48,3 +48,4 @@ PetFriends.Mac/dist/osx-arm64/小欧公爵和小耶牧师桌宠-macOS-arm64.dmg
 ## GitHub Actions
 
 `.github/workflows/build-macos.yml` 会同时构建 Apple Silicon 和 Intel 压缩包。可在仓库 Actions 页面手动运行，或推送 `v*` 标签触发。
+标签构建还会把对应架构的 DMG 和 ZIP 自动上传到同版本的 GitHub Release。
