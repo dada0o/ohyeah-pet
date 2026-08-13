@@ -3,4 +3,8 @@
     <BaseIntermediateOutputPath>obj\win7\</BaseIntermediateOutputPath>
     <BaseOutputPath>bin\win7\</BaseOutputPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'PetFriends.Win7NoInstall'">
+    <BaseIntermediateOutputPath>obj\win7-no-install\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\win7-no-install\</BaseOutputPath>
+  </PropertyGroup>
 </Project>
