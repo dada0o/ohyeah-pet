@@ -36,6 +36,8 @@ chmod +x PetFriends.Mac/build-macos.sh
 ./PetFriends.Mac/build-macos.sh x64    # Intel
 ```
 
+构建脚本会同时生成 ZIP 和 DMG；两种格式都自带运行环境，目标 Mac 不需要另装 .NET。
+
 完整功能和首次运行说明见 [PetFriends.Mac/README-macOS.md](PetFriends.Mac/README-macOS.md)。Mac 版本保留透明悬浮、拖动、摸摸、双宠互动、两种活动模式、屏幕边缘探头、尺寸与安静模式；依赖 Win32 的其他应用窗口识别功能暂未移植。
 
 更完整的操作说明见 [README.txt](README.txt)。

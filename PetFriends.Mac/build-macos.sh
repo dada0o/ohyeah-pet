@@ -19,6 +19,7 @@ PUBLISH_DIR="$SCRIPT_DIR/bin/publish/$RID"
 DIST_DIR="$SCRIPT_DIR/dist/$RID"
 APP_DIR="$DIST_DIR/$APP_NAME.app"
 ICONSET_DIR="$SCRIPT_DIR/obj/AppIcon.iconset"
+DMG_STAGE_DIR="$DIST_DIR/dmg-root"
 
 rm -rf "$PUBLISH_DIR" "$DIST_DIR" "$ICONSET_DIR"
 mkdir -p "$PUBLISH_DIR" "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources" "$ICONSET_DIR"
@@ -53,9 +54,24 @@ iconutil -c icns "$ICONSET_DIR" -o "$APP_DIR/Contents/Resources/AppIcon.icns"
 # Ad-hoc signing keeps the local bundle internally consistent. Distribution can
 # replace this with a Developer ID signature and notarization later.
 codesign --force --deep --sign - "$APP_DIR"
+codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 
 ZIP_PATH="$DIST_DIR/$APP_NAME-macOS-$ARCH.zip"
 ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "$ZIP_PATH"
 
+mkdir -p "$DMG_STAGE_DIR"
+cp -R "$APP_DIR" "$DMG_STAGE_DIR/"
+ln -s /Applications "$DMG_STAGE_DIR/Applications"
+DMG_PATH="$DIST_DIR/$APP_NAME-macOS-$ARCH.dmg"
+hdiutil create \
+  -volname "$APP_NAME" \
+  -srcfolder "$DMG_STAGE_DIR" \
+  -ov \
+  -format UDZO \
+  "$DMG_PATH" >/dev/null
+hdiutil verify "$DMG_PATH" >/dev/null
+rm -rf "$DMG_STAGE_DIR"
+
 echo "Built: $APP_DIR"
 echo "Archive: $ZIP_PATH"
+echo "Disk image: $DMG_PATH"

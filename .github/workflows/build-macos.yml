@@ -36,5 +36,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: 小欧公爵和小耶牧师桌宠-macOS-${{ matrix.arch }}
-          path: PetFriends.Mac/dist/osx-${{ matrix.arch }}/小欧公爵和小耶牧师桌宠-macOS-${{ matrix.arch }}.zip
+          path: |
+            PetFriends.Mac/dist/osx-${{ matrix.arch }}/小欧公爵和小耶牧师桌宠-macOS-${{ matrix.arch }}.zip
+            PetFriends.Mac/dist/osx-${{ matrix.arch }}/小欧公爵和小耶牧师桌宠-macOS-${{ matrix.arch }}.dmg
           if-no-files-found: error
