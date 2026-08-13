@@ -1,11 +1,23 @@
 param(
     [string]$DotnetPath = "dotnet",
     [string]$NuGetPackages = "",
-    [string]$OutputDirectory = "publish\PetFriends-v1.2.0-Windows7-NoInstall-x86-x64"
+    [string]$Version = "",
+    [string]$OutputDirectory = ""
 )
 
 $ErrorActionPreference = "Stop"
 $repoRoot = $PSScriptRoot
+$projectPath = Join-Path $repoRoot "PetFriends.Win7NoInstall.csproj"
+if (-not $Version) {
+    [xml]$project = Get-Content -LiteralPath $projectPath
+    $Version = [string]$project.Project.PropertyGroup.Version
+}
+if (-not $Version) {
+    throw "The package version could not be determined."
+}
+if (-not $OutputDirectory) {
+    $OutputDirectory = "publish\PetFriends-v$Version-Windows7-NoInstall-x86-x64"
+}
 $env:DOTNET_CLI_HOME = Join-Path $repoRoot "obj\dotnet-cli-home"
 $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "1"
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = "1"
@@ -19,12 +31,11 @@ if (-not $outputRoot.StartsWith($publishRoot, [System.StringComparison]::Ordinal
     throw "OutputDirectory must be inside the repository publish directory."
 }
 
-$projectPath = Join-Path $repoRoot "PetFriends.Win7NoInstall.csproj"
 & $DotnetPath restore $projectPath --ignore-failed-sources
 if ($LASTEXITCODE -ne 0) {
     throw "The Windows 7 package restore failed."
 }
-& $DotnetPath build $projectPath -c Release --no-restore
+& $DotnetPath build $projectPath -c Release --no-restore -p:Version=$Version
 if ($LASTEXITCODE -ne 0) {
     throw "The Windows 7 no-install build failed."
 }
