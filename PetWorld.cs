@@ -42,6 +42,7 @@ internal sealed class PetWorld
         "有需要就叫我呀。", "偷偷送你一点元气～", "今天也会顺顺利利！", "好像闻到了点心的香味。", "再坚持一下就好啦。"
     };
     private Forms.NotifyIcon? _tray;
+    private Forms.ToolStripMenuItem? _trayAutostartItem;
     private bool _quiet;
     private bool _isCuddling;
     private bool _isPairActivity;
@@ -707,6 +708,19 @@ internal sealed class PetWorld
             }
         };
         menu.Items.Add(quietItem);
+
+        var autostartItem = new MenuItem
+        {
+            Header = "开机自动启动",
+            IsCheckable = true,
+            IsChecked = AutostartService.IsEnabled
+        };
+        autostartItem.Click += (_, _) =>
+        {
+            var requested = autostartItem.IsChecked;
+            if (!SetAutostart(requested)) autostartItem.IsChecked = !requested;
+        };
+        menu.Items.Add(autostartItem);
 
         var sizeMenu = new MenuItem { Header = "桌宠大小" };
         sizeMenu.Items.Add(MenuItem("迷你", (_, _) => SetScale(.78)));
@@ -1398,9 +1412,36 @@ internal sealed class PetWorld
         menu.Items.Add("让他们贴贴", null, (_, _) => System.Windows.Application.Current.Dispatcher.Invoke(GatherAndCuddle));
         menu.Items.Add("亲一下脸颊", null, (_, _) => System.Windows.Application.Current.Dispatcher.Invoke(KissCheek));
         menu.Items.Add("随机互动", null, (_, _) => System.Windows.Application.Current.Dispatcher.Invoke(TriggerRandomPairInteraction));
+        menu.Items.Add(new Forms.ToolStripSeparator());
+        _trayAutostartItem = new Forms.ToolStripMenuItem("开机自动启动")
+        {
+            CheckOnClick = true,
+            Checked = AutostartService.IsEnabled
+        };
+        _trayAutostartItem.Click += (_, _) => System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            var requested = _trayAutostartItem.Checked;
+            if (!SetAutostart(requested)) _trayAutostartItem.Checked = !requested;
+        });
+        menu.Items.Add(_trayAutostartItem);
         menu.Items.Add("退出", null, (_, _) => System.Windows.Application.Current.Dispatcher.Invoke(Exit));
         _tray.ContextMenuStrip = menu;
         _tray.DoubleClick += (_, _) => System.Windows.Application.Current.Dispatcher.Invoke(BringBack);
+    }
+
+    private bool SetAutostart(bool enabled)
+    {
+        if (!AutostartService.TrySetEnabled(enabled, out _))
+        {
+            _cat.Speak("自动启动设置失败，请检查系统权限。", 3200);
+            _dog.Speak("没有改动原来的设置。", 3200);
+            return false;
+        }
+
+        if (_trayAutostartItem is not null) _trayAutostartItem.Checked = enabled;
+        _cat.Speak(enabled ? "以后开机就来陪你。" : "已关闭开机自动启动。", 2600);
+        _dog.Speak(enabled ? "我们会自己来报到！" : "需要时再叫我们吧～", 2600);
+        return true;
     }
 
     private void BringBack()

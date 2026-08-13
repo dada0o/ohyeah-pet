@@ -60,6 +60,7 @@ internal sealed class PetWorld
     ];
 
     private TrayIcon? _tray;
+    private NativeMenuItem? _trayAutostartItem;
     private bool _quiet;
     private bool _isCuddling;
     private bool _isPairActivity;
@@ -383,6 +384,19 @@ internal sealed class PetWorld
         };
         menu.Items.Add(quietItem);
 
+        var autostartItem = new MenuItem
+        {
+            Header = "开机自动启动",
+            ToggleType = MenuItemToggleType.CheckBox,
+            IsChecked = AutostartService.IsEnabled
+        };
+        autostartItem.Click += (_, _) =>
+        {
+            var requested = autostartItem.IsChecked;
+            if (!SetAutostart(requested)) autostartItem.IsChecked = !requested;
+        };
+        menu.Items.Add(autostartItem);
+
         var sizeMenu = new MenuItem { Header = "桌宠大小" };
         sizeMenu.Items.Add(MenuItem("迷你", (_, _) => SetScale(.78)));
         sizeMenu.Items.Add(MenuItem("刚刚好（默认）", (_, _) => SetScale(1)));
@@ -645,6 +659,17 @@ internal sealed class PetWorld
         menu.Items.Add(NativeMenuItem("让他们贴贴", GatherAndCuddle));
         menu.Items.Add(NativeMenuItem("随机互动", TriggerRandomPairInteraction));
         menu.Items.Add(new NativeMenuItemSeparator());
+        _trayAutostartItem = new NativeMenuItem("开机自动启动")
+        {
+            ToggleType = MenuItemToggleType.CheckBox,
+            IsChecked = AutostartService.IsEnabled
+        };
+        _trayAutostartItem.Click += (_, _) =>
+        {
+            var requested = _trayAutostartItem.IsChecked;
+            if (!SetAutostart(requested)) _trayAutostartItem.IsChecked = !requested;
+        };
+        menu.Items.Add(_trayAutostartItem);
         menu.Items.Add(NativeMenuItem("退出", Exit));
 
         _tray = new TrayIcon
@@ -655,6 +680,21 @@ internal sealed class PetWorld
             IsVisible = true
         };
         _tray.Clicked += (_, _) => BringBack();
+    }
+
+    private bool SetAutostart(bool enabled)
+    {
+        if (!AutostartService.TrySetEnabled(enabled, out var error))
+        {
+            _cat.Speak(error ?? "自动启动设置失败。", 3800);
+            _dog.Speak("没有改动原来的设置。", 3200);
+            return false;
+        }
+
+        if (_trayAutostartItem is not null) _trayAutostartItem.IsChecked = enabled;
+        _cat.Speak(enabled ? "以后开机就来陪你。" : "已关闭开机自动启动。", 2600);
+        _dog.Speak(enabled ? "我们会自己来报到！" : "需要时再叫我们吧～", 2600);
+        return true;
     }
 
     private static NativeMenuItem NativeMenuItem(string header, Action action)
