@@ -27,6 +27,24 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Free disk space for packaging
+        shell: bash
+        run: |
+          echo "Disk space before cleanup:"
+          df -h /
+
+          xcode_paths=()
+          while IFS= read -r -d '' path; do
+            xcode_paths+=("$path")
+          done < <(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print0)
+          if (( ${#xcode_paths[@]} > 0 )); then
+            sudo rm -rf -- "${xcode_paths[@]}"
+          fi
+          rm -rf "$HOME/Library/Caches" "$HOME/.nuget/packages"
+
+          echo "Disk space after cleanup:"
+          df -h /
+
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
