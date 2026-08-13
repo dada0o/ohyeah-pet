@@ -15,6 +15,11 @@ case "$ARCH" in
 esac
 
 APP_NAME="小欧公爵和小耶牧师桌宠"
+APP_VERSION="${PETFRIENDS_VERSION:-1.1.1}"
+if [[ "${GITHUB_REF_TYPE:-}" == "tag" && "${GITHUB_REF_NAME:-}" == v* ]]; then
+  APP_VERSION="${GITHUB_REF_NAME#v}"
+fi
+BUNDLE_VERSION="$(printf '%s' "$APP_VERSION" | sed -E 's/[^0-9.].*$//')"
 PUBLISH_DIR="$SCRIPT_DIR/bin/publish/$RID"
 DIST_DIR="$SCRIPT_DIR/dist/$RID"
 APP_DIR="$DIST_DIR/$APP_NAME.app"
@@ -31,12 +36,15 @@ dotnet publish "$SCRIPT_DIR/PetFriends.Mac.csproj" \
   --output "$PUBLISH_DIR" \
   -p:PublishSingleFile=true \
   -p:IncludeNativeLibrariesForSelfExtract=true \
-  -p:PublishTrimmed=false
+  -p:PublishTrimmed=false \
+  -p:Version="$APP_VERSION"
 
 cp -R "$PUBLISH_DIR/." "$APP_DIR/Contents/MacOS/"
 find "$APP_DIR/Contents/MacOS" -name '*.pdb' -delete
 chmod +x "$APP_DIR/Contents/MacOS/PetFriends"
 cp "$SCRIPT_DIR/Info.plist" "$APP_DIR/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" "$APP_DIR/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUNDLE_VERSION" "$APP_DIR/Contents/Info.plist"
 
 SOURCE_ICON="$ROOT_DIR/Assets/cat.png"
 sips -z 16 16 "$SOURCE_ICON" --out "$ICONSET_DIR/icon_16x16.png" >/dev/null

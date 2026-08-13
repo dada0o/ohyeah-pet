@@ -16,15 +16,17 @@
 
 前往仓库的 **Releases** 页面下载 `小欧公爵和小耶牧师桌宠.zip`，解压后双击其中的 EXE 文件即可运行。
 
-系统要求：Windows 10/11，64 位。发布包为自包含版本，不需要另外安装 .NET。
+系统要求：Windows 10/11，64 位。Windows 10 和 Windows 11 使用同一个自包含版本，不需要另外安装 .NET。Windows 11 会自动启用兼容渲染模式，避免透明桌宠窗口触发显卡驱动异常；程序还会阻止重复启动，并把启动、退出或异常记录到 `%LOCALAPPDATA%\PetFriends\runtime.log`，便于区分软件重启和系统重启。
 
 ## 从源码构建
 
 需要安装 .NET 8 SDK：
 
 ```powershell
-dotnet publish PetFriends.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+./build-windows.ps1 -Version 1.1.2 -Architecture x64
 ```
+
+输出包含可直接双击的版本化 EXE 和 ZIP。GitHub 的 Windows 工作流会在 `v*` 标签发布时自动把两者上传到对应 Release。
 
 ### macOS
 

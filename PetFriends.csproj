@@ -7,8 +7,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Assets\pet.ico</ApplicationIcon>
-    <AssemblyName>小欧公爵和小耶牧师</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>小欧公爵和小耶牧师桌宠</AssemblyName>
     <RootNamespace>PetFriends</RootNamespace>
+    <Version>1.1.2</Version>
     <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**;PetFriends.Mac\**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
