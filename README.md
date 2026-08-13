@@ -1,6 +1,6 @@
 # 小欧公爵和小耶牧师桌宠
 
-一对可以拖动、摸摸、自由活动并彼此互动的 Windows 桌宠。小欧公爵是一只黑猫，小耶牧师是一只白狗。
+一对可以拖动、摸摸、自由活动并彼此互动的 Windows / macOS 桌宠。小欧公爵是一只黑猫，小耶牧师是一只白狗。
 
 ## 主要功能
 
@@ -24,6 +24,18 @@
 ```powershell
 dotnet publish PetFriends.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
 ```
+
+### macOS
+
+Mac 版本使用 Avalonia 12 和 .NET 9，支持 Apple Silicon 与 Intel：
+
+```bash
+chmod +x PetFriends.Mac/build-macos.sh
+./PetFriends.Mac/build-macos.sh arm64  # Apple Silicon
+./PetFriends.Mac/build-macos.sh x64    # Intel
+```
+
+完整功能和首次运行说明见 [PetFriends.Mac/README-macOS.md](PetFriends.Mac/README-macOS.md)。Mac 版本保留透明悬浮、拖动、摸摸、双宠互动、两种活动模式、屏幕边缘探头、尺寸与安静模式；依赖 Win32 的其他应用窗口识别功能暂未移植。
 
 更完整的操作说明见 [README.txt](README.txt)。
 

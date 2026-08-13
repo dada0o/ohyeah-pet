@@ -4,4 +4,6 @@ obj/
 *.user
 *.suo
 publish/
+dist/
+.DS_Store
 
