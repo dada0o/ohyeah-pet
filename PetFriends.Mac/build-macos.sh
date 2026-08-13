@@ -16,6 +16,7 @@ esac
 
 APP_NAME="小欧公爵和小耶牧师桌宠"
 APP_VERSION="${PETFRIENDS_VERSION:-1.1.1}"
+APP_VERSION="${APP_VERSION#v}"
 if [[ "${GITHUB_REF_TYPE:-}" == "tag" && "${GITHUB_REF_NAME:-}" == v* ]]; then
   APP_VERSION="${GITHUB_REF_NAME#v}"
 fi
@@ -24,9 +25,10 @@ PUBLISH_DIR="$SCRIPT_DIR/bin/publish/$RID"
 DIST_DIR="$SCRIPT_DIR/dist/$RID"
 APP_DIR="$DIST_DIR/$APP_NAME.app"
 ICONSET_DIR="$SCRIPT_DIR/obj/AppIcon.iconset"
-DMG_STAGE_DIR="$DIST_DIR/dmg-root"
+DMG_WORK_PATH="$SCRIPT_DIR/obj/PetFriends-$RID.dmg"
 
 rm -rf "$PUBLISH_DIR" "$DIST_DIR" "$ICONSET_DIR"
+rm -f "$DMG_WORK_PATH"
 mkdir -p "$PUBLISH_DIR" "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources" "$ICONSET_DIR"
 
 dotnet publish "$SCRIPT_DIR/PetFriends.Mac.csproj" \
@@ -42,6 +44,7 @@ dotnet publish "$SCRIPT_DIR/PetFriends.Mac.csproj" \
 cp -R "$PUBLISH_DIR/." "$APP_DIR/Contents/MacOS/"
 find "$APP_DIR/Contents/MacOS" -name '*.pdb' -delete
 chmod +x "$APP_DIR/Contents/MacOS/PetFriends"
+rm -rf "$PUBLISH_DIR"
 cp "$SCRIPT_DIR/Info.plist" "$APP_DIR/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" "$APP_DIR/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUNDLE_VERSION" "$APP_DIR/Contents/Info.plist"
@@ -64,21 +67,20 @@ iconutil -c icns "$ICONSET_DIR" -o "$APP_DIR/Contents/Resources/AppIcon.icns"
 codesign --force --deep --sign - "$APP_DIR"
 codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 
-ZIP_PATH="$DIST_DIR/$APP_NAME-macOS-$ARCH.zip"
-ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "$ZIP_PATH"
-
-mkdir -p "$DMG_STAGE_DIR"
-cp -R "$APP_DIR" "$DMG_STAGE_DIR/"
-ln -s /Applications "$DMG_STAGE_DIR/Applications"
 DMG_PATH="$DIST_DIR/$APP_NAME-macOS-$ARCH.dmg"
+ln -s /Applications "$DIST_DIR/Applications"
 hdiutil create \
   -volname "$APP_NAME" \
-  -srcfolder "$DMG_STAGE_DIR" \
+  -srcfolder "$DIST_DIR" \
   -ov \
   -format UDZO \
-  "$DMG_PATH" >/dev/null
-hdiutil verify "$DMG_PATH" >/dev/null
-rm -rf "$DMG_STAGE_DIR"
+  "$DMG_WORK_PATH" >/dev/null
+rm -f "$DIST_DIR/Applications"
+hdiutil verify "$DMG_WORK_PATH" >/dev/null
+mv "$DMG_WORK_PATH" "$DMG_PATH"
+
+ZIP_PATH="$DIST_DIR/$APP_NAME-macOS-$ARCH.zip"
+ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "$ZIP_PATH"
 
 echo "Built: $APP_DIR"
 echo "Archive: $ZIP_PATH"
