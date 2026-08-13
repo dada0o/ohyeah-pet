@@ -40,7 +40,7 @@ internal sealed class CuddleWindow : Window
         };
         RenderOptions.SetBitmapScalingMode(
             image,
-            Compat.IsLegacyWindows ? BitmapScalingMode.LowQuality : BitmapScalingMode.HighQuality);
+            Compat.UseSafeRendering ? BitmapScalingMode.LowQuality : BitmapScalingMode.HighQuality);
         grid.Children.Add(image);
 
         _caption = new TextBlock

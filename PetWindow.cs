@@ -11,6 +11,7 @@ using Cursors = System.Windows.Input.Cursors;
 using ContextMenu = System.Windows.Controls.ContextMenu;
 using FontFamily = System.Windows.Media.FontFamily;
 using Image = System.Windows.Controls.Image;
+using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Point = System.Windows.Point;
 using WpfHorizontalAlignment = System.Windows.HorizontalAlignment;
 
@@ -19,6 +20,7 @@ namespace PetFriends;
 internal sealed class PetWindow : Window
 {
     public const double BubbleHeight = 56;
+    private const int MaxParticles = 18;
     private readonly Image _petImage;
     private readonly Border _bubble;
     private readonly TextBlock _speech;
@@ -29,6 +31,7 @@ internal sealed class PetWindow : Window
     private Point _mouseDown;
     private Point _windowDown;
     private DateTime _mouseDownAt;
+    private bool _pointerPressed;
 
     public string PetName { get; }
     public bool IsDragging { get; private set; }
@@ -83,7 +86,7 @@ internal sealed class PetWindow : Window
             VerticalAlignment = VerticalAlignment.Bottom,
             Visibility = Visibility.Hidden
         };
-        if (!Compat.IsLegacyWindows)
+        if (!Compat.UseSafeRendering)
         {
             _bubble.Effect = new System.Windows.Media.Effects.DropShadowEffect
             {
@@ -118,8 +121,10 @@ internal sealed class PetWindow : Window
         };
         RenderOptions.SetBitmapScalingMode(
             _petImage,
-            Compat.IsLegacyWindows ? BitmapScalingMode.LowQuality : BitmapScalingMode.HighQuality);
+            Compat.UseSafeRendering ? BitmapScalingMode.LowQuality : BitmapScalingMode.HighQuality);
         _petImage.MouseLeftButtonDown += OnMouseLeftButtonDown;
+        _petImage.MouseMove += OnMouseMove;
+        _petImage.MouseLeftButtonUp += OnMouseLeftButtonUp;
         _petImage.MouseRightButtonUp += OnMouseRightButtonUp;
         stage.Children.Add(_petImage);
 
@@ -135,6 +140,7 @@ internal sealed class PetWindow : Window
 
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (e.ChangedButton != MouseButton.Left) return;
         ActivityVersion++;
         IsBusy = false;
         MotionX = 0;
@@ -144,7 +150,26 @@ internal sealed class PetWindow : Window
         _mouseDown = PointToScreen(e.GetPosition(this));
         _windowDown = new Point(Left, Top);
         _mouseDownAt = DateTime.UtcNow;
+        _pointerPressed = true;
         IsDragging = true;
+        LastActionWasDrag = false;
+        _petImage.CaptureMouse();
+        e.Handled = true;
+    }
+
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_pointerPressed || e.LeftButton != MouseButtonState.Pressed) return;
+        var current = PointToScreen(e.GetPosition(this));
+        var delta = current - _mouseDown;
+        if (Math.Abs(delta.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(delta.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        _pointerPressed = false;
+        if (_petImage.IsMouseCaptured) _petImage.ReleaseMouseCapture();
         try
         {
             DragMove();
@@ -157,14 +182,25 @@ internal sealed class PetWindow : Window
         {
             IsDragging = false;
             var windowMoved = (new Point(Left, Top) - _windowDown).Length;
-            var heldFor = (DateTime.UtcNow - _mouseDownAt).TotalMilliseconds;
             LastActionWasDrag = windowMoved >= 4;
-            if (windowMoved < 4 && heldFor < 900)
-            {
-                Petted?.Invoke(this);
-            }
             DragFinished?.Invoke(this);
         }
+    }
+
+    private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left || !_pointerPressed) return;
+        _pointerPressed = false;
+        if (_petImage.IsMouseCaptured) _petImage.ReleaseMouseCapture();
+        IsDragging = false;
+        LastActionWasDrag = false;
+        var heldFor = (DateTime.UtcNow - _mouseDownAt).TotalMilliseconds;
+        if (heldFor < 900)
+        {
+            Petted?.Invoke(this);
+        }
+        DragFinished?.Invoke(this);
+        e.Handled = true;
     }
 
     private void OnMouseRightButtonUp(object sender, MouseButtonEventArgs e)
@@ -241,9 +277,13 @@ internal sealed class PetWindow : Window
     public void Burst(string glyph, Color color)
     {
         var random = Compat.Random;
-        var particleCount = Compat.IsLegacyWindows ? 3 : 5;
+        var particleCount = Compat.UseSafeRendering ? 3 : 5;
         for (var index = 0; index < particleCount; index++)
         {
+            while (_effects.Children.Count >= MaxParticles)
+            {
+                _effects.Children.RemoveAt(0);
+            }
             var mark = new TextBlock
             {
                 Text = glyph,
