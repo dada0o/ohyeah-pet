@@ -42,7 +42,7 @@ namespace PetFriends
 
             _caption = new TextBlock
             {
-                Text = "???? ?",
+                Text = "贴贴时间 ♥",
                 FontFamily = new FontFamily("Microsoft YaHei UI"),
                 FontSize = 15,
                 FontWeight = FontWeights.Bold,

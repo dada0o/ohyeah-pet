@@ -9,7 +9,7 @@
     <LangVersion>latest</LangVersion>
     <DefineConstants>$(DefineConstants);NET35</DefineConstants>
     <ApplicationIcon>Assets\pet.ico</ApplicationIcon>
-    <AssemblyName>???????????-Win7????</AssemblyName>
+    <AssemblyName>小欧公爵和小耶牧师桌宠-Win7免安装版</AssemblyName>
     <RootNamespace>PetFriends</RootNamespace>
     <Version>1.2.0</Version>
     <StartupObject>PetFriends.Program</StartupObject>

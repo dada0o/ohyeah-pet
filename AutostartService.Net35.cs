@@ -35,8 +35,8 @@ namespace PetFriends
                 using (RegistryKey runKey = Registry.CurrentUser.CreateSubKey(RunKeyPath))
                 using (RegistryKey settingsKey = Registry.CurrentUser.CreateSubKey(SettingsKeyPath))
                 {
-                    if (runKey == null) throw new InvalidOperationException("???????????????");
-                    if (settingsKey == null) throw new InvalidOperationException("???????????");
+                    if (runKey == null) throw new InvalidOperationException("无法打开当前用户的启动项设置。");
+                    if (settingsKey == null) throw new InvalidOperationException("无法保存自动启动偏好。");
 
                     if (enabled)
                     {

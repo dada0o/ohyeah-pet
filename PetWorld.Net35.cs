@@ -24,8 +24,8 @@ namespace PetFriends
         }
 
         private const double BasePetSize = 160;
-        private readonly PetWindow _cat = new PetWindow("????", "cat.png", BasePetSize);
-        private readonly PetWindow _dog = new PetWindow("????", "dog.png", BasePetSize);
+        private readonly PetWindow _cat = new PetWindow("小欧公爵", "cat.png", BasePetSize);
+        private readonly PetWindow _dog = new PetWindow("小耶牧师", "dog.png", BasePetSize);
         private readonly LegacyScheduler _scheduler = new LegacyScheduler();
         private readonly DispatcherTimer _motionTimer = new DispatcherTimer();
         private readonly DispatcherTimer _lifeTimer = new DispatcherTimer();
@@ -33,15 +33,15 @@ namespace PetFriends
         private readonly DispatcherTimer _proximityTimer = new DispatcherTimer();
         private readonly string[] _catLines =
         {
-            "??????????", "??????????", "??????????", "????????", "???????????",
-            "?????????", "?????????", "?????????", "??????????", "??????",
-            "????????", "?????????", "????????", "?????????", "???????"
+            "本公爵允许你摸一下。", "今天也要优雅地发呆。", "小耶，你的眼镜歪啦。", "窗外有没有小鸟？", "再摸一下也不是不行……",
+            "忙累了就休息一下。", "本公爵在这里陪着。", "今天的空气还不错。", "小耶又跑到哪里去了？", "要保持从容。",
+            "这个位置很舒服。", "偶尔发呆也很重要。", "先喝口水再继续。", "今天也有好好努力。", "再伸个懒腰吧。"
         };
         private readonly string[] _dogLines =
         {
-            "??????????", "????????", "????????", "???????????", "?????????",
-            "????????", "?????????", "??????????", "???????????", "??????????",
-            "??????????", "??????????", "????????", "?????????", "?????????"
+            "愿今天有好多好心情～", "小欧，等等我呀！", "要不要休息一下？", "发现一位认真工作的人！", "摸摸可以补充元气～",
+            "今天也要笑一笑～", "我会乖乖陪着你的。", "小欧现在在想什么呢？", "空气里有好心情的味道！", "休息一分钟也可以哦。",
+            "这里暖暖的，好舒服。", "认真工作的人最闪亮！", "有需要就叫我呀。", "今天也会顺顺利利！", "再坚持一下就好啦。"
         };
 
         private Forms.NotifyIcon _tray;
@@ -79,8 +79,8 @@ namespace PetFriends
             Configure(_dog);
             _cat.Show();
             _dog.Show();
-            _cat.Speak("???????????", 3400);
-            _dog.Speak("????????????", 3400);
+            _cat.Speak("我是小欧公爵，摸摸看？", 3400);
+            _dog.Speak("我是小耶牧师，请多关照～", 3400);
 
             _motionTimer.Tick += MovePets;
             _lifeTimer.Tick += LifeTick;
@@ -121,8 +121,8 @@ namespace PetFriends
             StopMotion(pet);
             pet.Hop(true);
             string line = pet == _cat
-                ? Pick("????????", "?????????", "?????????", "?????+1 ?", "?????????")
-                : Pick("????????", "????????", "???????", "??????? ?", "??????????");
+                ? Pick("嗯……手法尚可。", "呼噜……再来一下。", "今日份宠爱，收到！", "本公爵心情+1 ♥", "耳朵也可以摸一下。")
+                : Pick("好舒服～谢谢你！", "汪呜！元气满满！", "再摸摸耳朵嘛～", "送你一个小爪印 ♥", "最喜欢温柔的摸摸啦！");
             pet.Speak(line);
         }
 
@@ -229,8 +229,8 @@ namespace PetFriends
             Rect area = GetActivityArea();
             double centerX = Compat.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + BasePetSize, area.Right - BasePetSize);
             double centerY = Compat.Clamp((_cat.Center.Y + _dog.Center.Y) / 2, area.Top + PetWindow.BubbleHeight, area.Bottom - BasePetSize / 2);
-            _dog.Speak(Pick("?????????", "????????", "?????????"), 2500);
-            _cat.Speak(Pick("???????????", "???????????", "???????"), 2500);
+            _dog.Speak(Pick("小欧，我来找你啦～", "一起玩一会儿吧！", "小欧，靠近一点嘛。"), 2500);
+            _cat.Speak(Pick("慢一点，本公爵在这里。", "正好，本公爵也想找你。", "过来吧，小耶。"), 2500);
             GlidePair(centerX - _cat.Width + 14, centerY - _cat.Height / 2, centerX - 14, centerY - _dog.Height / 2, 880, token,
                 delegate(bool completed)
                 {
@@ -332,31 +332,31 @@ namespace PetFriends
             int dialogue = Compat.Random.Next(5);
             if (dialogue == 0)
             {
-                _cat.Speak("???????????", 3300);
-                _dog.Speak("?????????", 3300);
+                _cat.Speak("小耶，今天也一起玩吧。", 3300);
+                _dog.Speak("好呀！一直在一起～", 3300);
             }
             else if (dialogue == 1)
             {
-                _dog.Speak("??????????", 3300);
-                _cat.Speak("????????", 3300);
+                _dog.Speak("小欧，送你一颗星星！", 3300);
+                _cat.Speak("那本公爵收下了。", 3300);
             }
             else if (dialogue == 2)
             {
-                _cat.Speak("????????", 3300);
-                _dog.Speak("???????", 3300);
+                _cat.Speak("累了就靠过来吧。", 3300);
+                _dog.Speak("嘿嘿，贴一下～", 3300);
             }
             else if (dialogue == 3)
             {
-                _dog.Speak("???????????", 3300);
-                _cat.Speak("??????????", 3300);
+                _dog.Speak("我们一起给主人加油吧！", 3300);
+                _cat.Speak("准了。今天也要顺利。", 3300);
             }
             else
             {
-                _dog.Speak("???????????", 3300);
-                _cat.Speak("???????????", 3300);
+                _dog.Speak("今天要不要多贴一会儿？", 3300);
+                _cat.Speak("……可以，只多一会儿。", 3300);
             }
-            _cat.Burst("?", System.Windows.Media.Color.FromRgb(205, 96, 126));
-            _dog.Burst("?", System.Windows.Media.Color.FromRgb(205, 96, 126));
+            _cat.Burst("♥", System.Windows.Media.Color.FromRgb(205, 96, 126));
+            _dog.Burst("♥", System.Windows.Media.Color.FromRgb(205, 96, 126));
             _cat.Wiggle();
             _dog.Wiggle();
             PairAfter(token, 3400, delegate { EndPairActivity(token); });
@@ -366,10 +366,10 @@ namespace PetFriends
         {
             ClosePairEffect(560, 2700, delegate
             {
-                _dog.Speak("???????????", 2800);
-                _cat.Speak("??????????", 2800);
-                _cat.Burst("?", System.Windows.Media.Color.FromRgb(235, 112, 145));
-                _dog.Burst("?", System.Windows.Media.Color.FromRgb(235, 112, 145));
+                _dog.Speak("啵～送你一个脸颊亲亲！", 2800);
+                _cat.Speak("只许高兴，不许害羞。", 2800);
+                _cat.Burst("♥", System.Windows.Media.Color.FromRgb(235, 112, 145));
+                _dog.Burst("♥", System.Windows.Media.Color.FromRgb(235, 112, 145));
                 _cat.Hop(true);
                 _dog.Wiggle();
             });
@@ -379,10 +379,10 @@ namespace PetFriends
         {
             ClosePairEffect(520, 2500, delegate
             {
-                _cat.Speak("?????", 2200);
-                _dog.Speak("?????????", 2600);
-                _cat.BounceTwice("?");
-                _dog.BounceTwice("?");
+                _cat.Speak("碰碰鼻子。", 2200);
+                _dog.Speak("碰到啦！好运传递～", 2600);
+                _cat.BounceTwice("✦");
+                _dog.BounceTwice("✦");
             });
         }
 
@@ -390,12 +390,12 @@ namespace PetFriends
         {
             ClosePairEffect(540, 2800, delegate
             {
-                _dog.Speak("?????", 2600);
-                _cat.Speak("??????????", 2800);
+                _dog.Speak("蹭蹭小欧～", 2600);
+                _cat.Speak("……再蹭一下也可以。", 2800);
                 _cat.Wiggle();
                 _dog.Wiggle();
-                _cat.Burst("?", System.Windows.Media.Color.FromRgb(221, 133, 162));
-                _dog.Burst("?", System.Windows.Media.Color.FromRgb(221, 133, 162));
+                _cat.Burst("♥", System.Windows.Media.Color.FromRgb(221, 133, 162));
+                _dog.Burst("♥", System.Windows.Media.Color.FromRgb(221, 133, 162));
             });
         }
 
@@ -403,10 +403,10 @@ namespace PetFriends
         {
             ClosePairEffect(520, 2800, delegate
             {
-                _cat.Speak("??????????", 3000);
-                _dog.Speak("????????", 3000);
-                _cat.Burst("?", System.Windows.Media.Color.FromRgb(113, 162, 195));
-                _dog.Burst("?", System.Windows.Media.Color.FromRgb(113, 162, 195));
+                _cat.Speak("爪子给我，别走丢了。", 3000);
+                _dog.Speak("牵好啦！一起走～", 3000);
+                _cat.Burst("∞", System.Windows.Media.Color.FromRgb(113, 162, 195));
+                _dog.Burst("∞", System.Windows.Media.Color.FromRgb(113, 162, 195));
                 _cat.Hop();
                 _scheduler.After(260, delegate { _dog.Hop(); });
             });
@@ -416,9 +416,9 @@ namespace PetFriends
         {
             ClosePairEffect(500, 3600, delegate
             {
-                _dog.Speak("??????????????", 3400);
-                _scheduler.After(1000, delegate { _cat.Speak("?????????????", 3000); });
-                _cat.Burst("?", System.Windows.Media.Color.FromRgb(220, 121, 151));
+                _dog.Speak("悄悄告诉你：我最喜欢和你玩。", 3400);
+                _scheduler.After(1000, delegate { _cat.Speak("巧了，本公爵也是。要保密。", 3000); });
+                _cat.Burst("♥", System.Windows.Media.Color.FromRgb(220, 121, 151));
                 _dog.Wiggle();
             });
         }
@@ -427,12 +427,12 @@ namespace PetFriends
         {
             ClosePairEffect(520, 3100, delegate
             {
-                _cat.Speak("??????????", 3000);
-                _dog.Speak("?????????????", 3200);
+                _cat.Speak("别动，发饰有一点歪。", 3000);
+                _dog.Speak("谢谢小欧！我也帮你理理毛～", 3200);
                 _cat.Wiggle();
                 _scheduler.After(480, delegate { _dog.Wiggle(); });
-                _cat.Burst("?", System.Windows.Media.Color.FromRgb(116, 165, 199));
-                _dog.Burst("?", System.Windows.Media.Color.FromRgb(116, 165, 199));
+                _cat.Burst("✦", System.Windows.Media.Color.FromRgb(116, 165, 199));
+                _dog.Burst("✦", System.Windows.Media.Color.FromRgb(116, 165, 199));
             });
         }
 
@@ -440,10 +440,10 @@ namespace PetFriends
         {
             ClosePairEffect(460, 3100, delegate
             {
-                _dog.Speak("?????????", 3000);
-                _cat.Speak("?????????", 3000);
-                _cat.Burst("?", System.Windows.Media.Color.FromRgb(225, 171, 88));
-                _dog.Burst("?", System.Windows.Media.Color.FromRgb(225, 171, 88));
+                _dog.Speak("小欧今天特别帅气！", 3000);
+                _cat.Speak("小耶今天也很可爱。", 3000);
+                _cat.Burst("★", System.Windows.Media.Color.FromRgb(225, 171, 88));
+                _dog.Burst("★", System.Windows.Media.Color.FromRgb(225, 171, 88));
                 _cat.Hop();
                 _dog.Hop();
             });
@@ -453,10 +453,10 @@ namespace PetFriends
         {
             int token;
             if (!BeginPairActivity(out token)) return;
-            _cat.Speak("?????????", 2400);
-            _dog.Speak("??????????", 2400);
-            _cat.BounceTwice("?");
-            _dog.BounceTwice("?");
+            _cat.Speak("配合得不错，击掌！", 2400);
+            _dog.Speak("啪！今天也默契满分～", 2400);
+            _cat.BounceTwice("★");
+            _dog.BounceTwice("★");
             PairAfter(token, 1800, delegate { EndPairActivity(token); });
         }
 
@@ -464,8 +464,8 @@ namespace PetFriends
         {
             int token;
             if (!BeginPairActivity(out token)) return;
-            _cat.Speak("???????", 2800);
-            _dog.Speak("????????", 2800);
+            _cat.Speak("就跳一小会儿。", 2800);
+            _dog.Speak("一、二、转圈圈～", 2800);
             DanceBeat(token, 0);
         }
 
@@ -477,10 +477,10 @@ namespace PetFriends
                 EndPairActivity(token);
                 return;
             }
-            _cat.BounceTwice("?");
+            _cat.BounceTwice("♪");
             PairAfter(token, 240, delegate
             {
-                _dog.BounceTwice("?");
+                _dog.BounceTwice("♫");
                 PairAfter(token, 620, delegate { DanceBeat(token, beat + 1); });
             });
         }
@@ -489,15 +489,15 @@ namespace PetFriends
         {
             int token;
             if (!BeginPairActivity(out token)) return;
-            _dog.Speak("??????????", 3000);
-            _cat.Speak("????????????", 3000);
-            _cat.Burst("?", System.Windows.Media.Color.FromRgb(211, 166, 101));
-            _dog.Burst("?", System.Windows.Media.Color.FromRgb(211, 166, 101));
+            _dog.Speak("这个小饼干分你一半！", 3000);
+            _cat.Speak("……那本公爵也分你一半。", 3000);
+            _cat.Burst("●", System.Windows.Media.Color.FromRgb(211, 166, 101));
+            _dog.Burst("●", System.Windows.Media.Color.FromRgb(211, 166, 101));
             _cat.Hop();
             _dog.Hop();
             PairAfter(token, 2400, delegate
             {
-                _dog.Speak("????????", 2200);
+                _dog.Speak("一起吃果然更香～", 2200);
                 EndPairActivity(token);
             });
         }
@@ -506,10 +506,10 @@ namespace PetFriends
         {
             int token;
             if (!BeginPairActivity(out token)) return;
-            _dog.Speak("?????????????", 3300);
-            _cat.Speak("??????????", 3300);
-            _cat.Burst("?", System.Windows.Media.Color.FromRgb(228, 129, 154));
-            _dog.Burst("?", System.Windows.Media.Color.FromRgb(228, 129, 154));
+            _dog.Speak("不开心的话，可以告诉我哦。", 3300);
+            _cat.Speak("有你在，已经好多了。", 3300);
+            _cat.Burst("♥", System.Windows.Media.Color.FromRgb(228, 129, 154));
+            _dog.Burst("♥", System.Windows.Media.Color.FromRgb(228, 129, 154));
             _cat.Wiggle();
             _dog.Wiggle();
             PairAfter(token, 3100, delegate { EndPairActivity(token); });
@@ -519,14 +519,14 @@ namespace PetFriends
         {
             int token;
             if (!BeginPairActivity(out token)) return;
-            _cat.Speak("??????????", 3000);
-            _dog.Speak("????????", 3000);
+            _cat.Speak("安静一点，午睡时间。", 3000);
+            _dog.Speak("好～我靠着你睡。", 3000);
             _cat.Burst("Z", System.Windows.Media.Color.FromRgb(116, 146, 184));
             _dog.Burst("z", System.Windows.Media.Color.FromRgb(116, 146, 184));
             PairAfter(token, 3600, delegate
             {
-                _cat.Speak("???????", 1800);
-                _dog.Speak("??????", 1800);
+                _cat.Speak("……精神恢复。", 1800);
+                _dog.Speak("睡得好香呀～", 1800);
                 EndPairActivity(token);
             });
         }
@@ -538,8 +538,8 @@ namespace PetFriends
             Rect area = GetActivityArea();
             double targetX = Compat.Clamp(_dog.Left + Compat.Random.Next(-340, 341), area.Left + 20, area.Right - _dog.Width - 20);
             double targetY = Compat.Clamp(_dog.Top + Compat.Random.Next(-260, 261), area.Top + 20, area.Bottom - _dog.Height);
-            _dog.Speak("????????", 2300);
-            _cat.Speak("??????", 2300);
+            _dog.Speak("小欧，来追我呀！", 2300);
+            _cat.Speak("站住，小耶！", 2300);
             _cat.IsBusy = false;
             _dog.IsBusy = false;
             StartRunToward(_dog, targetX, targetY, 2800);
@@ -555,8 +555,8 @@ namespace PetFriends
                 StopMotion(_dog);
                 _cat.IsBusy = true;
                 _dog.IsBusy = true;
-                _dog.Speak("????????", 2100);
-                _cat.Speak("????????", 2100);
+                _dog.Speak("嘿嘿，被追到了～", 2100);
+                _cat.Speak("这次算你跑得快。", 2100);
                 EndPairActivity(token);
             });
         }
@@ -581,7 +581,7 @@ namespace PetFriends
             Rect area = GetActivityArea();
             cuddle.Left = Compat.Clamp(cuddle.Left, area.Left, area.Right - cuddle.Width);
             cuddle.Top = Compat.Clamp(cuddle.Top, area.Top, area.Bottom - cuddle.Height);
-            cuddle.Play(Pick("???? ?", "????????", "???????"));
+            cuddle.Play(Pick("贴贴时间 ♥", "最喜欢和你一起！", "友情充电中……"));
             _scheduler.After(4300, delegate
             {
                 if (!_isCuddling || token != _pairToken) return;
@@ -611,8 +611,8 @@ namespace PetFriends
             double top = area.Bottom - Math.Max(_cat.Height, _dog.Height) + 24;
             _cat.Top = top;
             _dog.Top = top;
-            _cat.Speak("??????", 1300);
-            _dog.Speak("?????", 1300);
+            _cat.Speak("过来，小耶。", 1300);
+            _dog.Speak("来啦来啦～", 1300);
             _scheduler.After(900, BeginCuddle);
         }
 
@@ -621,8 +621,8 @@ namespace PetFriends
             if (_isCuddling || _isPairActivity) return;
             StopMotion(_cat);
             StopMotion(_dog);
-            _cat.Speak("????????????", 3000);
-            _dog.Speak("????????", 3000);
+            _cat.Speak("这份点心很合本公爵心意。", 3000);
+            _dog.Speak("好吃！谢谢招待～", 3000);
             _cat.Hop(true);
             _dog.Hop(true);
         }
@@ -634,48 +634,48 @@ namespace PetFriends
                 FontFamily = new System.Windows.Media.FontFamily("Microsoft YaHei UI"),
                 FontSize = 14
             };
-            menu.Items.Add(CreateMenuItem("??" + pet.PetName, delegate { Petted(pet); }));
-            menu.Items.Add(CreateMenuItem("?????", GatherAndCuddle));
-            menu.Items.Add(CreateMenuItem("??????", FeedBoth));
+            menu.Items.Add(CreateMenuItem("摸摸" + pet.PetName, delegate { Petted(pet); }));
+            menu.Items.Add(CreateMenuItem("让他们贴贴", GatherAndCuddle));
+            menu.Items.Add(CreateMenuItem("送一份小零食", FeedBoth));
 
-            MenuItem playMenu = new MenuItem { Header = "?????" };
-            playMenu.Items.Add(CreateMenuItem("????", TriggerRandomPairInteraction));
-            playMenu.Items.Add(CreateMenuItem("?????", KissCheek));
-            playMenu.Items.Add(CreateMenuItem("????", TouchNoses));
-            playMenu.Items.Add(CreateMenuItem("???", RubCheeks));
-            playMenu.Items.Add(CreateMenuItem("??", HoldPaws));
-            playMenu.Items.Add(CreateMenuItem("????", WhisperSecret));
-            playMenu.Items.Add(CreateMenuItem("??????", GroomEachOther));
-            playMenu.Items.Add(CreateMenuItem("????", ComplimentEachOther));
+            MenuItem playMenu = new MenuItem { Header = "互动小游戏" };
+            playMenu.Items.Add(CreateMenuItem("随机互动", TriggerRandomPairInteraction));
+            playMenu.Items.Add(CreateMenuItem("亲一下脸颊", KissCheek));
+            playMenu.Items.Add(CreateMenuItem("碰碰鼻子", TouchNoses));
+            playMenu.Items.Add(CreateMenuItem("蹭蹭脸", RubCheeks));
+            playMenu.Items.Add(CreateMenuItem("牵爪", HoldPaws));
+            playMenu.Items.Add(CreateMenuItem("说悄悄话", WhisperSecret));
+            playMenu.Items.Add(CreateMenuItem("互相整理毛发", GroomEachOther));
+            playMenu.Items.Add(CreateMenuItem("互相夸奖", ComplimentEachOther));
             playMenu.Items.Add(new Separator());
-            playMenu.Items.Add(CreateMenuItem("??", HighFive));
-            playMenu.Items.Add(CreateMenuItem("????", DanceTogether));
-            playMenu.Items.Add(CreateMenuItem("????", PlayChase));
-            playMenu.Items.Add(CreateMenuItem("????", ShareSnack));
-            playMenu.Items.Add(CreateMenuItem("????", ComfortEachOther));
-            playMenu.Items.Add(CreateMenuItem("????", NapTogether));
-            playMenu.Items.Add(CreateMenuItem("???", PairDialogue));
+            playMenu.Items.Add(CreateMenuItem("击掌", HighFive));
+            playMenu.Items.Add(CreateMenuItem("同步跳舞", DanceTogether));
+            playMenu.Items.Add(CreateMenuItem("追逐游戏", PlayChase));
+            playMenu.Items.Add(CreateMenuItem("分享点心", ShareSnack));
+            playMenu.Items.Add(CreateMenuItem("互相安慰", ComfortEachOther));
+            playMenu.Items.Add(CreateMenuItem("一起打盹", NapTogether));
+            playMenu.Items.Add(CreateMenuItem("聊聊天", PairDialogue));
             menu.Items.Add(playMenu);
 
-            MenuItem activityMenu = new MenuItem { Header = "????" };
-            MenuItem focusItem = new MenuItem { Header = "??????????????", IsCheckable = true, IsChecked = _activityMode == ActivityMode.Focus };
-            MenuItem fullItem = new MenuItem { Header = "????", IsCheckable = true, IsChecked = _activityMode == ActivityMode.FullScreen };
+            MenuItem activityMenu = new MenuItem { Header = "活动范围" };
+            MenuItem focusItem = new MenuItem { Header = "专注陪伴（拖到哪里就在哪里）", IsCheckable = true, IsChecked = _activityMode == ActivityMode.Focus };
+            MenuItem fullItem = new MenuItem { Header = "全屏撒欢", IsCheckable = true, IsChecked = _activityMode == ActivityMode.FullScreen };
             focusItem.Click += delegate { SetActivityMode(ActivityMode.Focus); };
             fullItem.Click += delegate { SetActivityMode(ActivityMode.FullScreen); };
             activityMenu.Items.Add(focusItem);
             activityMenu.Items.Add(fullItem);
             menu.Items.Add(activityMenu);
 
-            MenuItem roamMenu = new MenuItem { Header = "??????" };
-            roamMenu.Items.Add(CreateMenuItem("????", delegate { StartFreeRun(pet, true); }));
-            roamMenu.Items.Add(CreateMenuItem("??????", delegate { HideAtScreenEdge(pet, true); }));
-            roamMenu.Items.Add(CreateMenuItem("????????", delegate { PerchOnWindow(pet, true); }));
-            roamMenu.Items.Add(CreateMenuItem("????????", delegate { HideBehindCurrentWindow(pet, true); }));
-            roamMenu.Items.Add(CreateMenuItem("?????????", delegate { PeekFromCurrentWindowEdge(pet, true); }));
+            MenuItem roamMenu = new MenuItem { Header = "自由活动动作" };
+            roamMenu.Items.Add(CreateMenuItem("到处跑跑", delegate { StartFreeRun(pet, true); }));
+            roamMenu.Items.Add(CreateMenuItem("躲到屏幕边缘", delegate { HideAtScreenEdge(pet, true); }));
+            roamMenu.Items.Add(CreateMenuItem("坐到当前窗口上面", delegate { PerchOnWindow(pet, true); }));
+            roamMenu.Items.Add(CreateMenuItem("躲到当前窗口后面", delegate { HideBehindCurrentWindow(pet, true); }));
+            roamMenu.Items.Add(CreateMenuItem("从当前窗口边缘探头", delegate { PeekFromCurrentWindowEdge(pet, true); }));
             menu.Items.Add(roamMenu);
             menu.Items.Add(new Separator());
 
-            MenuItem quietItem = new MenuItem { Header = "????", IsCheckable = true, IsChecked = _quiet };
+            MenuItem quietItem = new MenuItem { Header = "安静模式", IsCheckable = true, IsChecked = _quiet };
             quietItem.Click += delegate
             {
                 _quiet = quietItem.IsChecked;
@@ -683,15 +683,15 @@ namespace PetFriends
                 StopMotion(_dog);
                 if (_quiet)
                 {
-                    _cat.Speak("????????", 2300);
-                    _dog.Speak("???????", 2300);
+                    _cat.Speak("那就安静陪着你。", 2300);
+                    _dog.Speak("嘘～专心时间。", 2300);
                 }
             };
             menu.Items.Add(quietItem);
 
             MenuItem autostartItem = new MenuItem
             {
-                Header = "??????",
+                Header = "开机自动启动",
                 IsCheckable = true,
                 IsChecked = AutostartService.IsEnabled
             };
@@ -702,13 +702,13 @@ namespace PetFriends
             };
             menu.Items.Add(autostartItem);
 
-            MenuItem sizeMenu = new MenuItem { Header = "????" };
-            sizeMenu.Items.Add(CreateMenuItem("??", delegate { SetScale(.78); }));
-            sizeMenu.Items.Add(CreateMenuItem("???????", delegate { SetScale(1); }));
-            sizeMenu.Items.Add(CreateMenuItem("???", delegate { SetScale(1.3); }));
+            MenuItem sizeMenu = new MenuItem { Header = "桌宠大小" };
+            sizeMenu.Items.Add(CreateMenuItem("迷你", delegate { SetScale(.78); }));
+            sizeMenu.Items.Add(CreateMenuItem("刚刚好（默认）", delegate { SetScale(1); }));
+            sizeMenu.Items.Add(CreateMenuItem("大一点", delegate { SetScale(1.3); }));
             menu.Items.Add(sizeMenu);
             menu.Items.Add(new Separator());
-            menu.Items.Add(CreateMenuItem("????", Exit));
+            menu.Items.Add(CreateMenuItem("退出桌宠", Exit));
             return menu;
         }
 
@@ -733,8 +733,8 @@ namespace PetFriends
                     _focusAnchor = new Point((_cat.Center.X + _dog.Center.X) / 2, (_cat.Center.Y + _dog.Center.Y) / 2);
                 }
                 Rect area = GetFocusArea();
-                _cat.Speak("??????????????", 3200);
-                _dog.Speak("??????????????", 3200);
+                _cat.Speak("专注陪伴模式：就在这里陪你。", 3200);
+                _dog.Speak("我们会在你放的位置附近活动～", 3200);
                 int token;
                 if (!BeginPairActivity(out token)) return;
                 GlidePair(area.Right - _cat.Width * 2 - 35, area.Bottom - _cat.Height + 24,
@@ -746,8 +746,8 @@ namespace PetFriends
             }
             else
             {
-                _cat.Speak("??????????", 2600);
-                _dog.Speak("????????", 2600);
+                _cat.Speak("全屏撒欢模式，出发！", 2600);
+                _dog.Speak("可以到处探险啦～", 2600);
                 _cat.Hop();
                 _dog.Hop();
             }
@@ -762,7 +762,7 @@ namespace PetFriends
             if (!BeginSoloActivity(pet, out version)) return;
             double targetLeft = Compat.Clamp(area.Right - pet.Width - 18, area.Left + 10, area.Right - pet.Width - 10);
             double targetTop = Compat.Clamp(area.Bottom - pet.Height + 24, area.Top + 10, area.Bottom - pet.Height + 24);
-            pet.Speak(Pick("??????", "???????????", "???????"), 2400);
+            pet.Speak(Pick("我也过来啦～", "等等我，一起待在这里。", "换到这边陪你。"), 2400);
             GlideTo(pet, targetLeft, targetTop, 760, version, delegate(bool completed)
             {
                 if (completed && IsSameActivity(pet, version)) EndSoloActivity(pet);
@@ -824,15 +824,15 @@ namespace PetFriends
             }
             pet.FaceDirection(pet.MotionX);
             pet.Speak(_activityMode == ActivityMode.Focus
-                ? Pick("??????", "??????", "???????")
-                : Pick("??????", "?????", "?????????"), 1800);
+                ? Pick("在这里陪你～", "小范围巡逻。", "不打扰你工作。")
+                : Pick("去那边看看！", "巡逻时间～", "换个地方待一会儿。"), 1800);
         }
 
         private void HideAtScreenEdge(PetWindow pet, bool force)
         {
             if (_activityMode != ActivityMode.FullScreen && !force)
             {
-                pet.Speak("????????????", 2200);
+                pet.Speak("专注模式下就在这里陪你。", 2200);
                 StartFreeRun(pet, false);
                 return;
             }
@@ -846,13 +846,13 @@ namespace PetFriends
             double dogTop = groupTop + 145;
             _cat.SetEdgePeekPose(true, hideLeft, true, true);
             _dog.SetEdgePeekPose(true, hideLeft, true, true);
-            _cat.Speak(Pick("?????????", "??????", "?????"), 2300);
-            _dog.Speak(Pick("???????", "?????????", "?????????"), 2300);
+            _cat.Speak(Pick("嘘，小耶跟紧一点。", "我们藏好啦。", "先别出声。"), 2300);
+            _dog.Speak(Pick("我在小欧下面～", "一上一下，刚刚好！", "嘿嘿，偷偷看一眼。"), 2300);
             GlidePair(hiddenLeft, catTop, hiddenLeft, dogTop, 900, token, delegate(bool completed)
             {
                 if (!completed || !IsPairCurrent(token)) return;
-                _cat.Burst("?", System.Windows.Media.Color.FromRgb(124, 137, 158));
-                _dog.Burst("?", System.Windows.Media.Color.FromRgb(124, 137, 158));
+                _cat.Burst("…", System.Windows.Media.Color.FromRgb(124, 137, 158));
+                _dog.Burst("…", System.Windows.Media.Color.FromRgb(124, 137, 158));
                 PairAfter(token, Compat.Random.Next(2600, 4100), delegate
                 {
                     double emergeLeft = hideLeft ? area.Left + 10 : area.Right - _cat.Width - 10;
@@ -873,7 +873,7 @@ namespace PetFriends
         {
             if (_activityMode != ActivityMode.FullScreen && !force)
             {
-                pet.Speak("?????????????????", 2600);
+                pet.Speak("切换到全屏撒欢，才能去窗口上坐哦。", 2600);
                 return;
             }
             int version;
@@ -890,15 +890,15 @@ namespace PetFriends
             double targetX = Compat.Clamp(perch.Left + 28 + Compat.Random.NextDouble() * Math.Max(30, perch.Width - pet.Width - 56), workArea.Left, workArea.Right - pet.Width);
             bool enoughRoomAbove = perch.Top - workArea.Top >= pet.Height * .52;
             double targetY = enoughRoomAbove ? perch.Top - pet.Height + 30 : perch.Top - PetWindow.BubbleHeight + 8;
-            pet.Speak(Pick("????", "??????", "???????", "?????"), 2600);
+            pet.Speak(Pick("坐一下～", "这里好舒服。", "休息一小会儿～", "伸个懒腰～"), 2600);
             GlideTo(pet, targetX, targetY, 1100, version, delegate(bool completed)
             {
                 if (!completed || !IsSameActivity(pet, version)) return;
-                pet.BounceTwice("?");
+                pet.BounceTwice("★");
                 _scheduler.After(Compat.Random.Next(3500, 6200), delegate
                 {
                     if (!IsSameActivity(pet, version)) return;
-                    pet.Speak(Pick("?????", "??????", "?????"), 2000);
+                    pet.Speak(Pick("休息好啦！", "再活动一下。", "精神满满。"), 2000);
                     EndSoloActivity(pet);
                 });
             });
@@ -908,7 +908,7 @@ namespace PetFriends
         {
             if (_activityMode != ActivityMode.FullScreen && !force)
             {
-                pet.Speak("??????????????????", 2600);
+                pet.Speak("切换到全屏撒欢，才会躲到应用后面哦。", 2600);
                 return;
             }
             int version;
@@ -917,7 +917,7 @@ namespace PetFriends
             NativeRect bounds;
             if (!TryGetPreferredHostWindow(out hostWindow, out bounds))
             {
-                pet.Speak("????????????????", 2400);
+                pet.Speak("现在没有找到可以躲藏的应用窗口。", 2400);
                 EndSoloActivity(pet);
                 return;
             }
@@ -927,7 +927,7 @@ namespace PetFriends
             double targetTop = canReallyHide
                 ? bounds.Top - 54
                 : Compat.Clamp(bounds.Top - PetWindow.BubbleHeight, workArea.Top - PetWindow.BubbleHeight, workArea.Bottom - pet.Height);
-            pet.Speak(Pick("?????????", "????????", "???????"), 2500);
+            pet.Speak(Pick("我藏到窗口后面啦。", "嘘，只露一点点～", "猜猜我在哪里？"), 2500);
             GlideTo(pet, targetLeft, targetTop, 850, version, delegate(bool completed)
             {
                 if (!completed || !IsSameActivity(pet, version)) return;
@@ -937,12 +937,12 @@ namespace PetFriends
                     SetWindowBehind(pet, hostWindow);
                 }
                 else pet.SetHeadPeek(true);
-                pet.Burst("?", System.Windows.Media.Color.FromRgb(122, 136, 158));
+                pet.Burst("…", System.Windows.Media.Color.FromRgb(122, 136, 158));
                 _scheduler.After(Compat.Random.Next(2800, 4600), delegate
                 {
                     if (!IsSameActivity(pet, version)) return;
                     RestorePetLayer(pet);
-                    pet.Speak("?????", 1900);
+                    pet.Speak("找到我啦！", 1900);
                     pet.Hop(true);
                     EndSoloActivity(pet);
                 });
@@ -953,7 +953,7 @@ namespace PetFriends
         {
             if (_activityMode != ActivityMode.FullScreen && !force)
             {
-                pet.Speak("??????????????????", 2400);
+                pet.Speak("全屏撒欢时才会自动去应用旁边探头哦。", 2400);
                 return;
             }
             int token;
@@ -962,8 +962,8 @@ namespace PetFriends
             NativeRect bounds;
             if (!TryGetPreferredHostWindow(out hostWindow, out bounds))
             {
-                _cat.Speak("??????????????", 2200);
-                _dog.Speak("?????????????", 2200);
+                _cat.Speak("现在没有找到可以探头的地方。", 2200);
+                _dog.Speak("那我们晚一点再一起去看看～", 2200);
                 EndPairActivity(token);
                 return;
             }
@@ -987,8 +987,8 @@ namespace PetFriends
             double dogTop = catTop + verticalGap;
             _cat.SetEdgePeekPose(true, fromLeft, true, false);
             _dog.SetEdgePeekPose(true, fromLeft, true, false);
-            _cat.Speak(Pick("????????????", "??????????", "??????????"), 2600);
-            _dog.Speak(Pick("???????", "????????????", "???????"), 2600);
+            _cat.Speak(Pick("小耶，跟本公爵一起看看。", "嘘，一上一下探个头。", "我们从这边悄悄看看。"), 2600);
+            _dog.Speak(Pick("我在小欧下面～", "一起探头，不要被发现啦！", "小耶准备好啦～"), 2600);
             GlidePair(targetLeft, catTop, targetLeft, dogTop, 880, token, delegate(bool completed)
             {
                 if (!completed || !IsPairCurrent(token)) return;
@@ -1001,8 +1001,8 @@ namespace PetFriends
                     SetWindowBehind(_cat, hostWindow);
                     SetWindowBehind(_dog, hostWindow);
                 }
-                _cat.Burst("?", System.Windows.Media.Color.FromRgb(126, 139, 162));
-                _dog.Burst("?", System.Windows.Media.Color.FromRgb(126, 139, 162));
+                _cat.Burst("…", System.Windows.Media.Color.FromRgb(126, 139, 162));
+                _dog.Burst("…", System.Windows.Media.Color.FromRgb(126, 139, 162));
                 PairAfter(token, Compat.Random.Next(2700, 4300), delegate
                 {
                     RestorePetLayer(_cat);
@@ -1286,17 +1286,17 @@ namespace PetFriends
         {
             _tray = new Forms.NotifyIcon();
             _tray.Icon = Icon.ExtractAssociatedIcon(Compat.ProcessPath);
-            _tray.Text = "?????????";
+            _tray.Text = "小欧公爵和小耶牧师";
             _tray.Visible = true;
             Forms.ContextMenuStrip menu = new Forms.ContextMenuStrip();
-            menu.Items.Add("????", null, delegate { Dispatch(BringBack); });
-            menu.Items.Add("??????", null, delegate { Dispatch(delegate { SetActivityMode(ActivityMode.Focus); }); });
-            menu.Items.Add("??????", null, delegate { Dispatch(delegate { SetActivityMode(ActivityMode.FullScreen); }); });
-            menu.Items.Add("?????", null, delegate { Dispatch(GatherAndCuddle); });
-            menu.Items.Add("?????", null, delegate { Dispatch(KissCheek); });
-            menu.Items.Add("????", null, delegate { Dispatch(TriggerRandomPairInteraction); });
+            menu.Items.Add("叫回桌面", null, delegate { Dispatch(BringBack); });
+            menu.Items.Add("专注陪伴模式", null, delegate { Dispatch(delegate { SetActivityMode(ActivityMode.Focus); }); });
+            menu.Items.Add("全屏撒欢模式", null, delegate { Dispatch(delegate { SetActivityMode(ActivityMode.FullScreen); }); });
+            menu.Items.Add("让他们贴贴", null, delegate { Dispatch(GatherAndCuddle); });
+            menu.Items.Add("亲一下脸颊", null, delegate { Dispatch(KissCheek); });
+            menu.Items.Add("随机互动", null, delegate { Dispatch(TriggerRandomPairInteraction); });
             menu.Items.Add(new Forms.ToolStripSeparator());
-            _trayAutostartItem = new Forms.ToolStripMenuItem("??????");
+            _trayAutostartItem = new Forms.ToolStripMenuItem("开机自动启动");
             _trayAutostartItem.CheckOnClick = true;
             _trayAutostartItem.Checked = AutostartService.IsEnabled;
             _trayAutostartItem.Click += delegate
@@ -1308,7 +1308,7 @@ namespace PetFriends
                 });
             };
             menu.Items.Add(_trayAutostartItem);
-            menu.Items.Add("??", null, delegate { Dispatch(Exit); });
+            menu.Items.Add("退出", null, delegate { Dispatch(Exit); });
             _tray.ContextMenuStrip = menu;
             _tray.DoubleClick += delegate { Dispatch(BringBack); };
         }
@@ -1318,14 +1318,14 @@ namespace PetFriends
             string error;
             if (!AutostartService.TrySetEnabled(enabled, out error))
             {
-                _cat.Speak("?????????????????", 3200);
-                _dog.Speak("??????????", 3200);
+                _cat.Speak("自动启动设置失败，请检查系统权限。", 3200);
+                _dog.Speak("没有改动原来的设置。", 3200);
                 return false;
             }
 
             if (_trayAutostartItem != null) _trayAutostartItem.Checked = enabled;
-            _cat.Speak(enabled ? "?????????" : "??????????", 2600);
-            _dog.Speak(enabled ? "?????????" : "?????????", 2600);
+            _cat.Speak(enabled ? "以后开机就来陪你。" : "已关闭开机自动启动。", 2600);
+            _dog.Speak(enabled ? "我们会自己来报到！" : "需要时再叫我们吧～", 2600);
             return true;
         }
 
@@ -1344,7 +1344,7 @@ namespace PetFriends
             _dog.Top = area.Bottom - _dog.Height + 24;
             _cat.Show();
             _dog.Show();
-            _cat.Speak("??????");
+            _cat.Speak("我们回来啦！");
             _dog.Hop(true);
         }
 
