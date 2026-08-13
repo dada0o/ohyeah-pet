@@ -40,7 +40,7 @@ jobs:
           if (( ${#xcode_paths[@]} > 0 )); then
             sudo rm -rf -- "${xcode_paths[@]}"
           fi
-          rm -rf "$HOME/Library/Caches" "$HOME/.nuget/packages"
+          rm -rf "$HOME/.nuget/packages"
 
           echo "Disk space after cleanup:"
           df -h /
