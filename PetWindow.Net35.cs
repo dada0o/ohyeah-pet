@@ -103,7 +103,7 @@ namespace PetFriends
                 RenderTransformOrigin = new Point(.5, .82),
                 RenderTransform = transforms,
                 Cursor = Cursors.Hand,
-                ToolTip = petName + "????????????????"
+                ToolTip = petName + "：单击摸摸，按住拖动，右键看菜单"
             };
             RenderOptions.SetBitmapScalingMode(_petImage, BitmapScalingMode.LowQuality);
             _petImage.MouseLeftButtonDown += OnMouseLeftButtonDown;
@@ -196,7 +196,7 @@ namespace PetFriends
             squash.KeyFrames.Add(new LinearDoubleKeyFrame(1, KeyTime.FromPercent(1)));
             squash.Duration = TimeSpan.FromMilliseconds(620);
             _scale.BeginAnimation(ScaleTransform.ScaleYProperty, squash);
-            if (hearts) Burst("?", Color.FromRgb(230, 114, 145));
+            if (hearts) Burst("♥", Color.FromRgb(230, 114, 145));
         }
 
         public void Hop()
