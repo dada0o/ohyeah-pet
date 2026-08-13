@@ -1,4 +1,4 @@
-name: Build Windows 10 and 11 app
+name: Build Windows apps
 
 on:
   workflow_dispatch:
@@ -8,6 +8,8 @@ on:
       - "**/*.csproj"
       - "app.manifest"
       - "build-windows.ps1"
+      - "build-win7-no-install-package.ps1"
+      - "README-Win7-NoInstall.txt"
       - ".github/workflows/build-windows.yml"
   push:
     tags:
@@ -18,7 +20,7 @@ permissions:
 
 jobs:
   build:
-    name: Windows 10/11 x64
+    name: Windows 10/11 x64 and Windows 7
     runs-on: windows-2022
 
     steps:
@@ -36,16 +38,19 @@ jobs:
           $version = if ($env:GITHUB_REF_TYPE -eq "tag") {
             $env:GITHUB_REF_NAME -replace '^v', ''
           } else {
-            "1.1.2"
+            ([xml](Get-Content -LiteralPath PetFriends.csproj)).Project.PropertyGroup.Version
           }
           dotnet restore PetFriends.csproj -r win-x64
           ./build-windows.ps1 -Version $version -Architecture x64
+          ./build-win7-no-install-package.ps1 -Version $version
 
       - name: Upload Windows build artifact
         uses: actions/upload-artifact@v4
         with:
           name: PetFriends-Windows10-11-x64
-          path: dist/Windows10-11-x64/*
+          path: |
+            dist/Windows10-11-x64/*
+            publish/PetFriends-v*-Windows7-NoInstall-x86-x64.zip
           if-no-files-found: error
 
       - name: Upload versioned release files
@@ -53,4 +58,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
-        run: gh release upload $env:GITHUB_REF_NAME dist/Windows10-11-x64/* --clobber
+        run: gh release upload $env:GITHUB_REF_NAME dist/Windows10-11-x64/* publish/PetFriends-v*-Windows7-NoInstall-x86-x64.zip --clobber
