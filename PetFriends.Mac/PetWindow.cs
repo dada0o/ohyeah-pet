@@ -321,10 +321,11 @@ internal sealed class PetWindow : Window
         _scale.ScaleX = _direction * Math.Abs(_scale.ScaleX);
     }
 
-    public void SetEdgePeekPose(bool enabled, bool fromLeft)
+    public void SetEdgePeekPose(bool enabled, bool fromLeft, bool reverseLean = false)
     {
         _rotateVersion++;
-        _restingAngle = enabled ? (fromLeft ? -18 : 18) : 0;
+        var angle = fromLeft ? -18d : 18d;
+        _restingAngle = enabled ? (reverseLean ? -angle : angle) : 0;
         _rotate.Angle = _restingAngle;
         if (enabled) FaceDirection(fromLeft ? 1 : -1);
     }

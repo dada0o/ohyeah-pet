@@ -8,7 +8,8 @@
 - 两只桌宠会主动靠近并触发贴贴、亲脸颊、碰鼻子、牵爪、跳舞、追逐、分享点心等互动
 - “专注陪伴”和“全屏撒欢”两种活动模式
 - 可坐在应用窗口上沿、躲到窗口后面或从窗口左右边缘一起探头
-- 窗口左边缘探头时逆时针歪头，右边缘探头时顺时针歪头
+- 从当前窗口左边缘探头时逆时针歪头，右边缘探头时顺时针歪头
+- 躲到屏幕左边缘时顺时针旋转，右边缘时逆时针旋转
 - 屏幕边缘探头、安静模式、尺寸调节和托盘菜单
 
 ## 下载与运行
@@ -34,6 +35,8 @@ chmod +x PetFriends.Mac/build-macos.sh
 ./PetFriends.Mac/build-macos.sh arm64  # Apple Silicon
 ./PetFriends.Mac/build-macos.sh x64    # Intel
 ```
+
+构建脚本会同时生成 ZIP 和 DMG；两种格式都自带运行环境，目标 Mac 不需要另装 .NET。
 
 完整功能和首次运行说明见 [PetFriends.Mac/README-macOS.md](PetFriends.Mac/README-macOS.md)。Mac 版本保留透明悬浮、拖动、摸摸、双宠互动、两种活动模式、屏幕边缘探头、尺寸与安静模式；依赖 Win32 的其他应用窗口识别功能暂未移植。
 

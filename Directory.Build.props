@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'PetFriends.Win7'">
+    <BaseIntermediateOutputPath>obj\win7\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\win7\</BaseOutputPath>
+  </PropertyGroup>
+</Project>

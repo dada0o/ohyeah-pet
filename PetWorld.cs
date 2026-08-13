@@ -6,6 +6,8 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using Forms = System.Windows.Forms;
+using ContextMenu = System.Windows.Controls.ContextMenu;
+using MenuItem = System.Windows.Controls.MenuItem;
 using Point = System.Windows.Point;
 
 namespace PetFriends;
@@ -21,7 +23,7 @@ internal sealed class PetWorld
     private const double BasePetSize = 160;
     private readonly PetWindow _cat = new("小欧公爵", "cat.png", BasePetSize);
     private readonly PetWindow _dog = new("小耶牧师", "dog.png", BasePetSize);
-    private readonly DispatcherTimer _motionTimer = new() { Interval = TimeSpan.FromMilliseconds(40) };
+    private readonly DispatcherTimer _motionTimer = new() { Interval = TimeSpan.FromMilliseconds(Compat.IsLegacyWindows ? 67 : 40) };
     private readonly DispatcherTimer _lifeTimer = new() { Interval = TimeSpan.FromSeconds(4) };
     private readonly DispatcherTimer _interactionTimer = new() { Interval = TimeSpan.FromSeconds(7) };
     private readonly DispatcherTimer _proximityTimer = new() { Interval = TimeSpan.FromMilliseconds(600) };
@@ -95,7 +97,7 @@ internal sealed class PetWorld
             : Pick("好舒服～谢谢你！", "汪呜！元气满满！", "再摸摸耳朵嘛～", "送你一个小爪印 ♥", "再摸一下好不好？", "最喜欢温柔的摸摸啦！", "开心得尾巴要摇起来了～", "今天的元气补满啦！");
         pet.Speak(line);
 
-        if (DistanceBetweenPets() < 205 && Random.Shared.NextDouble() < .42)
+        if (DistanceBetweenPets() < 205 && Compat.Random.NextDouble() < .42)
         {
             var other = pet == _cat ? _dog : _cat;
             other.Speak(pet == _cat ? "小耶也想要摸摸！" : "本公爵也在这里。", 2200);
@@ -164,19 +166,19 @@ internal sealed class PetWorld
     private void LifeTick(object? sender, EventArgs e)
     {
         if (_quiet || _isCuddling || _isPairActivity) return;
-        var pet = Random.Shared.Next(2) == 0 ? _cat : _dog;
+        var pet = Compat.Random.Next(2) == 0 ? _cat : _dog;
         if (pet.IsDragging || pet.IsBusy) return;
-        var roll = Random.Shared.NextDouble();
+        var roll = Compat.Random.NextDouble();
         if (DateTime.UtcNow >= _nextAdventure && roll < .22)
         {
-            _nextAdventure = DateTime.UtcNow.AddSeconds(Random.Shared.Next(14, 24));
+            _nextAdventure = DateTime.UtcNow.AddSeconds(Compat.Random.Next(14, 24));
             if (_activityMode == ActivityMode.Focus)
             {
                 StartFreeRun(pet);
             }
             else
             {
-                switch (Random.Shared.Next(5))
+                switch (Compat.Random.Next(5))
                 {
                     case 0: StartFreeRun(pet); break;
                     case 1: HideAtScreenEdge(pet); break;
@@ -207,7 +209,7 @@ internal sealed class PetWorld
     private void InteractionTick(object? sender, EventArgs e)
     {
         if (_quiet || _isCuddling || _isPairActivity || _cat.IsBusy || _dog.IsBusy || DateTime.UtcNow < _nextInteraction) return;
-        _nextInteraction = DateTime.UtcNow.AddSeconds(Random.Shared.Next(10, 19));
+        _nextInteraction = DateTime.UtcNow.AddSeconds(Compat.Random.Next(10, 19));
         var distance = DistanceBetweenPets();
         if (distance < 220)
         {
@@ -223,8 +225,8 @@ internal sealed class PetWorld
     {
         if (!BeginPairActivity()) return;
         var area = GetActivityArea();
-        var centerX = Math.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + BasePetSize, area.Right - BasePetSize);
-        var centerY = Math.Clamp((_cat.Center.Y + _dog.Center.Y) / 2, area.Top + PetWindow.BubbleHeight, area.Bottom - BasePetSize / 2);
+        var centerX = Compat.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + BasePetSize, area.Right - BasePetSize);
+        var centerY = Compat.Clamp((_cat.Center.Y + _dog.Center.Y) / 2, area.Top + PetWindow.BubbleHeight, area.Bottom - BasePetSize / 2);
         _dog.Speak(Pick("小欧，我来找你啦～", "一起玩一会儿吧！", "小欧，靠近一点嘛。"), 2500);
         _cat.Speak(Pick("慢一点，本公爵在这里。", "正好，本公爵也想找你。", "过来吧，小耶。"), 2500);
         await Task.WhenAll(
@@ -262,7 +264,7 @@ internal sealed class PetWorld
 
     private void PairDialogue()
     {
-        var dialogue = Random.Shared.Next(14);
+        var dialogue = Compat.Random.Next(14);
         if (dialogue == 0)
         {
             _cat.Speak("小耶，今天也一起玩吧。", 3300);
@@ -343,7 +345,7 @@ internal sealed class PetWorld
     {
         CancelSoloActivity(_cat);
         CancelSoloActivity(_dog);
-        switch (Random.Shared.Next(15))
+        switch (Compat.Random.Next(15))
         {
             case 0: BeginCuddle(); break;
             case 1: PairDialogue(); break;
@@ -367,7 +369,7 @@ internal sealed class PetWorld
     {
         if (!BeginPairActivity()) return;
         await MoveCloseTogether(560);
-        if (Random.Shared.Next(2) == 0)
+        if (Compat.Random.Next(2) == 0)
         {
             _dog.Speak("小欧，靠近一点点～", 2000);
             await Task.Delay(520);
@@ -464,7 +466,7 @@ internal sealed class PetWorld
     {
         if (!BeginPairActivity()) return;
         await MoveCloseTogether(460);
-        var lines = Random.Shared.Next(3);
+        var lines = Compat.Random.Next(3);
         if (lines == 0)
         {
             _dog.Speak("小欧今天特别帅气！", 3000);
@@ -491,7 +493,7 @@ internal sealed class PetWorld
     private async Task MoveCloseTogether(int milliseconds)
     {
         var area = GetActivityArea();
-        var center = Math.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + BasePetSize, area.Right - BasePetSize);
+        var center = Compat.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + BasePetSize, area.Right - BasePetSize);
         var catTarget = center - _cat.Width + 14;
         var dogTarget = center - 14;
         var catStart = _cat.Left;
@@ -579,8 +581,8 @@ internal sealed class PetWorld
     {
         if (!BeginPairActivity()) return;
         var area = GetActivityArea();
-        var targetX = Math.Clamp(_dog.Left + Random.Shared.Next(-340, 341), area.Left + 20, area.Right - _dog.Width - 20);
-        var targetY = Math.Clamp(_dog.Top + Random.Shared.Next(-260, 261), area.Top + 20, area.Bottom - _dog.Height);
+        var targetX = Compat.Clamp(_dog.Left + Compat.Random.Next(-340, 341), area.Left + 20, area.Right - _dog.Width - 20);
+        var targetY = Compat.Clamp(_dog.Top + Compat.Random.Next(-260, 261), area.Top + 20, area.Bottom - _dog.Height);
         _dog.Speak("小欧，来追我呀！", 2300);
         _cat.Speak("站住，小耶！", 2300);
         StartRunToward(_dog, targetX, targetY, 2800);
@@ -629,15 +631,15 @@ internal sealed class PetWorld
             Top = bottom - 295
         };
         var area = GetActivityArea();
-        cuddle.Left = Math.Clamp(cuddle.Left, area.Left, area.Right - cuddle.Width);
-        cuddle.Top = Math.Clamp(cuddle.Top, area.Top, area.Bottom - cuddle.Height);
+        cuddle.Left = Compat.Clamp(cuddle.Left, area.Left, area.Right - cuddle.Width);
+        cuddle.Top = Compat.Clamp(cuddle.Top, area.Top, area.Bottom - cuddle.Height);
         cuddle.Play(Pick("贴贴时间 ♥", "最喜欢和你一起！", "友情充电中……"));
         await Task.Delay(4300);
         cuddle.Close();
-        _cat.Left = Math.Clamp(centerX - _cat.Width + 26, area.Left, area.Right - _cat.Width);
-        _dog.Left = Math.Clamp(centerX - 25, area.Left, area.Right - _dog.Width);
-        _cat.Top = Math.Clamp(bottom - _cat.Height, area.Top, area.Bottom - _cat.Height + 24);
-        _dog.Top = Math.Clamp(bottom - _dog.Height, area.Top, area.Bottom - _dog.Height + 24);
+        _cat.Left = Compat.Clamp(centerX - _cat.Width + 26, area.Left, area.Right - _cat.Width);
+        _dog.Left = Compat.Clamp(centerX - 25, area.Left, area.Right - _dog.Width);
+        _cat.Top = Compat.Clamp(bottom - _cat.Height, area.Top, area.Bottom - _cat.Height + 24);
+        _dog.Top = Compat.Clamp(bottom - _dog.Height, area.Top, area.Bottom - _dog.Height + 24);
         _cat.Show();
         _dog.Show();
         _cat.Hop(hearts: true);
@@ -767,8 +769,8 @@ internal sealed class PetWorld
         var area = GetFocusArea();
         if (IsInsideArea(pet, area)) return;
         CancelSoloActivity(pet);
-        var targetLeft = Math.Clamp(area.Right - pet.Width - 18, area.Left + 10, area.Right - pet.Width - 10);
-        var targetTop = Math.Clamp(area.Bottom - pet.Height + 24, area.Top + 10, area.Bottom - pet.Height + 24);
+        var targetLeft = Compat.Clamp(area.Right - pet.Width - 18, area.Left + 10, area.Right - pet.Width - 10);
+        var targetTop = Compat.Clamp(area.Bottom - pet.Height + 24, area.Top + 10, area.Bottom - pet.Height + 24);
         pet.Speak(Pick("我也过来啦～", "等等我，一起待在这里。", "换到这边陪你。"), 2400);
         await GlideToModeArea(pet, targetLeft, targetTop, 760);
         ClampToActivityArea(pet);
@@ -784,7 +786,7 @@ internal sealed class PetWorld
     {
         if (_isCuddling || _isPairActivity) return;
         var area = GetActivityArea();
-        var center = Math.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + 190, area.Right - 190);
+        var center = Compat.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + 190, area.Right - 190);
         _cat.Left = center - _cat.Width + 45;
         _dog.Left = center - 45;
         var top = area.Bottom - Math.Max(_cat.Height, _dog.Height) + 24;
@@ -834,7 +836,7 @@ internal sealed class PetWorld
         var deltaX = targetLeft - pet.Left;
         var deltaY = targetTop - pet.Top;
         var distance = Math.Max(1, Math.Sqrt(deltaX * deltaX + deltaY * deltaY));
-        var speed = Math.Clamp(distance / Math.Max(1, milliseconds / 40d), 1.2, 3.2);
+        var speed = Compat.Clamp(distance / Math.Max(1, milliseconds / 40d), 1.2, 3.2);
         pet.MotionX = deltaX / distance * speed;
         pet.MotionY = deltaY / distance * speed;
         pet.MotionUntil = DateTime.UtcNow.AddMilliseconds(milliseconds);
@@ -845,21 +847,21 @@ internal sealed class PetWorld
     {
         if (pet.IsBusy || pet.IsDragging) return;
         var roamingArea = allowFullScreen ? SystemParameters.WorkArea : GetActivityArea();
-        var angle = Random.Shared.NextDouble() * Math.PI * 2;
-        var speed = 1.25 + Random.Shared.NextDouble() * 1.75;
+        var angle = Compat.Random.NextDouble() * Math.PI * 2;
+        var speed = 1.25 + Compat.Random.NextDouble() * 1.75;
         pet.MotionX = Math.Cos(angle) * speed;
         pet.MotionY = Math.Sin(angle) * speed * .72;
         if (Math.Abs(pet.MotionY) < .45)
         {
-            pet.MotionY = Random.Shared.Next(2) == 0 ? -.75 : .75;
+            pet.MotionY = Compat.Random.Next(2) == 0 ? -.75 : .75;
         }
-        pet.MotionUntil = DateTime.UtcNow.AddMilliseconds(Random.Shared.Next(1800, 3800));
+        pet.MotionUntil = DateTime.UtcNow.AddMilliseconds(Compat.Random.Next(1800, 3800));
         if (allowFullScreen)
         {
             pet.IgnoreActivityBounds = true;
-            var targetX = roamingArea.Left + Random.Shared.NextDouble() * Math.Max(1, roamingArea.Width - pet.Width);
-            var targetY = roamingArea.Top + Random.Shared.NextDouble() * Math.Max(1, roamingArea.Height - pet.Height);
-            StartRunToward(pet, targetX, targetY, Random.Shared.Next(2200, 4200));
+            var targetX = roamingArea.Left + Compat.Random.NextDouble() * Math.Max(1, roamingArea.Width - pet.Width);
+            var targetY = roamingArea.Top + Compat.Random.NextDouble() * Math.Max(1, roamingArea.Height - pet.Height);
+            StartRunToward(pet, targetX, targetY, Compat.Random.Next(2200, 4200));
         }
         pet.FaceDirection(pet.MotionX);
         pet.Speak(_activityMode == ActivityMode.Focus
@@ -879,14 +881,14 @@ internal sealed class PetWorld
         var area = SystemParameters.WorkArea;
         var hideLeft = (_cat.Center.X + _dog.Center.X) / 2 < (area.Left + area.Right) / 2;
         var hiddenLeft = hideLeft ? area.Left - _cat.Width * .52 : area.Right - _cat.Width * .48;
-        var groupTop = Math.Clamp((_cat.Top + _dog.Top) / 2 - 80, area.Top + 24, area.Bottom - _dog.Height - 145);
+        var groupTop = Compat.Clamp((_cat.Top + _dog.Top) / 2 - 80, area.Top + 24, area.Bottom - _dog.Height - 145);
         var catTop = groupTop;
         var dogTop = groupTop + 145;
         _cat.IsBusy = _dog.IsBusy = true;
         _cat.ActivityVersion++;
         _dog.ActivityVersion++;
-        _cat.SetEdgePeekPose(true, hideLeft, showPaws: true);
-        _dog.SetEdgePeekPose(true, hideLeft, showPaws: true);
+        _cat.SetEdgePeekPose(true, hideLeft, showPaws: true, reverseLean: true);
+        _dog.SetEdgePeekPose(true, hideLeft, showPaws: true, reverseLean: true);
         _cat.Speak(Pick("嘘，小耶跟紧一点。", "我们藏好啦。", "先别出声。"), 2300);
         _dog.Speak(Pick("我在小欧下面～", "一上一下，刚刚好！", "嘿嘿，偷偷看一眼。"), 2300);
         await Task.WhenAll(
@@ -902,7 +904,7 @@ internal sealed class PetWorld
         }
         _cat.Burst("…", System.Windows.Media.Color.FromRgb(124, 137, 158));
         _dog.Burst("…", System.Windows.Media.Color.FromRgb(124, 137, 158));
-        await Task.Delay(Random.Shared.Next(2600, 4100));
+        await Task.Delay(Compat.Random.Next(2600, 4100));
         if (!_isPairActivity || !_cat.IsBusy || !_dog.IsBusy)
         {
             _cat.SetEdgePeekPose(false, hideLeft);
@@ -941,7 +943,7 @@ internal sealed class PetWorld
             return;
         }
         var workArea = SystemParameters.WorkArea;
-        var targetX = Math.Clamp(perch.Left + 28 + Random.Shared.NextDouble() * Math.Max(30, perch.Width - pet.Width - 56), workArea.Left, workArea.Right - pet.Width);
+        var targetX = Compat.Clamp(perch.Left + 28 + Compat.Random.NextDouble() * Math.Max(30, perch.Width - pet.Width - 56), workArea.Left, workArea.Right - pet.Width);
         var enoughRoomAbove = perch.Top - workArea.Top >= pet.Height * .52;
         var targetY = enoughRoomAbove
             ? perch.Top - pet.Height + 30
@@ -950,7 +952,7 @@ internal sealed class PetWorld
         await GlideTo(pet, targetX, targetY, 1100);
         if (!IsSameActivity(pet, activityVersion)) return;
         pet.BounceTwice("★");
-        await Task.Delay(Random.Shared.Next(3500, 6200));
+        await Task.Delay(Compat.Random.Next(3500, 6200));
         if (!IsSameActivity(pet, activityVersion)) return;
         pet.Speak(Pick("休息好啦！", "再活动一下。", "刚才好舒服～", "精神满满。"), 2000);
         EndSoloActivity(pet);
@@ -976,7 +978,7 @@ internal sealed class PetWorld
         pet.Speak(Pick("我藏到窗口后面啦。", "嘘，只露一点点～", "猜猜我在哪里？"), 2500);
         if (canReallyHide)
         {
-            var targetLeft = Math.Clamp(bounds.Left + 36 + Random.Shared.NextDouble() * Math.Max(30, bounds.Width - pet.Width - 72), workArea.Left, workArea.Right - pet.Width);
+            var targetLeft = Compat.Clamp(bounds.Left + 36 + Compat.Random.NextDouble() * Math.Max(30, bounds.Width - pet.Width - 72), workArea.Left, workArea.Right - pet.Width);
             var targetTop = bounds.Top - 54;
             await GlideTo(pet, targetLeft, targetTop, 850);
             if (!IsSameActivity(pet, activityVersion)) return;
@@ -985,15 +987,15 @@ internal sealed class PetWorld
         }
         else
         {
-            var targetLeft = Math.Clamp(bounds.Left + 24 + Random.Shared.NextDouble() * Math.Max(30, bounds.Width - pet.Width - 48), workArea.Left, workArea.Right - pet.Width);
-            var targetTop = Math.Clamp(bounds.Top - PetWindow.BubbleHeight, workArea.Top - PetWindow.BubbleHeight, workArea.Bottom - pet.Height);
+            var targetLeft = Compat.Clamp(bounds.Left + 24 + Compat.Random.NextDouble() * Math.Max(30, bounds.Width - pet.Width - 48), workArea.Left, workArea.Right - pet.Width);
+            var targetTop = Compat.Clamp(bounds.Top - PetWindow.BubbleHeight, workArea.Top - PetWindow.BubbleHeight, workArea.Bottom - pet.Height);
             await GlideTo(pet, targetLeft, targetTop, 800);
             if (!IsSameActivity(pet, activityVersion)) return;
             pet.SetHeadPeek(true);
             pet.Topmost = true;
         }
         pet.Burst("…", System.Windows.Media.Color.FromRgb(122, 136, 158));
-        await Task.Delay(Random.Shared.Next(2800, 4600));
+        await Task.Delay(Compat.Random.Next(2800, 4600));
         if (!IsSameActivity(pet, activityVersion)) return;
         RestorePetLayer(pet);
         pet.Speak("找到我啦！", 1900);
@@ -1044,7 +1046,7 @@ internal sealed class PetWorld
                 : workArea.Right - _cat.Width * .36;
         }
 
-        var verticalGap = Math.Clamp(bounds.Height * .22, 112, 138);
+        var verticalGap = Compat.Clamp(bounds.Height * .22, 112, 138);
         var pairHeight = _dog.Height + verticalGap;
         var topMin = Math.Max(workArea.Top + 16, bounds.Top + 28);
         var topMax = Math.Min(workArea.Bottom - pairHeight - 12, bounds.Bottom - pairHeight - 28);
@@ -1052,11 +1054,11 @@ internal sealed class PetWorld
         if (topMax >= topMin)
         {
             var preferredTop = bounds.Top + bounds.Height * .46 - pairHeight / 2;
-            catTop = Math.Clamp(preferredTop, topMin, topMax);
+            catTop = Compat.Clamp(preferredTop, topMin, topMax);
         }
         else
         {
-            catTop = Math.Clamp(
+            catTop = Compat.Clamp(
                 bounds.Top + bounds.Height / 2d - pairHeight / 2d,
                 workArea.Top + 8,
                 Math.Max(workArea.Top + 8, workArea.Bottom - pairHeight - 8));
@@ -1092,7 +1094,7 @@ internal sealed class PetWorld
         }
         _cat.Burst("…", System.Windows.Media.Color.FromRgb(126, 139, 162));
         _dog.Burst("…", System.Windows.Media.Color.FromRgb(126, 139, 162));
-        await Task.Delay(Random.Shared.Next(2700, 4300));
+        await Task.Delay(Compat.Random.Next(2700, 4300));
         if (!IsCurrentPairPeek(catVersion, dogVersion))
         {
             FinishPairPeek(fromLeft);
@@ -1106,8 +1108,8 @@ internal sealed class PetWorld
         _cat.Speak(Pick("一起出来吧。", "侦察完毕。", "被发现了吗？"), 2000);
         _dog.Speak(Pick("小耶也出来啦～", "我们看到你啦！", "探头行动完成～"), 2000);
         var emergeLeft = fromLeft
-            ? Math.Clamp(bounds.Left + 10, workArea.Left + 6, workArea.Right - _cat.Width - 6)
-            : Math.Clamp(bounds.Right - _cat.Width - 10, workArea.Left + 6, workArea.Right - _cat.Width - 6);
+            ? Compat.Clamp(bounds.Left + 10, workArea.Left + 6, workArea.Right - _cat.Width - 6)
+            : Compat.Clamp(bounds.Right - _cat.Width - 10, workArea.Left + 6, workArea.Right - _cat.Width - 6);
         await Task.WhenAll(
             GlideTo(_cat, emergeLeft, catTop, 600),
             GlideTo(_dog, emergeLeft, dogTop, 600));
@@ -1222,7 +1224,7 @@ internal sealed class PetWorld
         {
             if (candidate == shell || !IsWindowVisible(candidate) || IsIconic(candidate)) return true;
             GetWindowThreadProcessId(candidate, out var processId);
-            if (processId == (uint)Environment.ProcessId) return true;
+            if (processId == (uint)Compat.ProcessId) return true;
             var length = GetWindowTextLength(candidate);
             if (length <= 0) return true;
             var title = new StringBuilder(length + 1);
@@ -1242,7 +1244,7 @@ internal sealed class PetWorld
             rectangle = default;
             return false;
         }
-        var index = Random.Shared.Next(candidates.Count);
+        var index = Compat.Random.Next(candidates.Count);
         window = handles[index];
         rectangle = candidates[index];
         _lastHostWindow = window;
@@ -1253,7 +1255,7 @@ internal sealed class PetWorld
     {
         if (window == IntPtr.Zero || window == GetShellWindow() || !IsWindowVisible(window) || IsIconic(window)) return false;
         GetWindowThreadProcessId(window, out var processId);
-        if (processId == (uint)Environment.ProcessId) return false;
+        if (processId == (uint)Compat.ProcessId) return false;
         return GetWindowTextLength(window) > 0 && TryGetVisibleWindowBounds(window, out var bounds) && bounds.Width >= 360 && bounds.Height >= 220;
     }
 
@@ -1268,7 +1270,7 @@ internal sealed class PetWorld
                 return false;
             }
         }
-        var dpi = GetDpiForWindow(window);
+        var dpi = TryGetWindowDpi(window);
         var scale = dpi > 0 ? dpi / 96d : 1d;
         bounds = new NativeRect
         {
@@ -1278,6 +1280,21 @@ internal sealed class PetWorld
             Bottom = (int)Math.Round(physicalBounds.Bottom / scale)
         };
         return true;
+    }
+
+    private static uint TryGetWindowDpi(IntPtr window)
+    {
+        // GetDpiForWindow was introduced in Windows 10 1607. Calling it on
+        // Windows 7 throws EntryPointNotFoundException, so use 96 DPI there.
+        if (Compat.IsLegacyWindows) return 96;
+        try
+        {
+            return GetDpiForWindow(window);
+        }
+        catch (EntryPointNotFoundException)
+        {
+            return 96;
+        }
     }
 
     private static void SetWindowBehind(PetWindow pet, IntPtr hostWindow)
@@ -1313,8 +1330,8 @@ internal sealed class PetWorld
         var height = Math.Min(380, workArea.Height);
         var defaultCenter = new Point(workArea.Right - width / 2, workArea.Bottom - height / 2);
         var anchor = _focusAnchor ?? defaultCenter;
-        var left = Math.Clamp(anchor.X - width / 2, workArea.Left, workArea.Right - width);
-        var top = Math.Clamp(anchor.Y - height / 2, workArea.Top, workArea.Bottom - height);
+        var left = Compat.Clamp(anchor.X - width / 2, workArea.Left, workArea.Right - width);
+        var top = Compat.Clamp(anchor.Y - height / 2, workArea.Top, workArea.Bottom - height);
         return new Rect(left, top, width, height);
     }
 
@@ -1327,11 +1344,11 @@ internal sealed class PetWorld
     private static void ClampPetToArea(PetWindow pet, Rect area, bool allowSidePeek)
     {
         var sidePeek = allowSidePeek ? pet.Width * .18 : 0;
-        pet.Left = Math.Clamp(pet.Left, area.Left - sidePeek, area.Right - pet.Width + sidePeek);
-        pet.Top = Math.Clamp(pet.Top, area.Top, area.Bottom - pet.Height + 24);
+        pet.Left = Compat.Clamp(pet.Left, area.Left - sidePeek, area.Right - pet.Width + sidePeek);
+        pet.Top = Compat.Clamp(pet.Top, area.Top, area.Bottom - pet.Height + 24);
     }
 
-    private static string Pick(params string[] values) => values[Random.Shared.Next(values.Length)];
+    private static string Pick(params string[] values) => values[Compat.Random.Next(values.Length)];
 
     private delegate bool EnumWindowsDelegate(IntPtr window, IntPtr parameter);
 
@@ -1370,7 +1387,7 @@ internal sealed class PetWorld
     {
         _tray = new Forms.NotifyIcon
         {
-            Icon = Icon.ExtractAssociatedIcon(Environment.ProcessPath!),
+            Icon = Icon.ExtractAssociatedIcon(Compat.ProcessPath),
             Text = "小欧公爵和小耶牧师",
             Visible = true
         };

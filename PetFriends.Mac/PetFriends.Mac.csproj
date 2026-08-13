@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>PetFriends</AssemblyName>
     <RootNamespace>PetFriends.Mac</RootNamespace>
-    <ApplicationTitle>小欧公爵和小耶牧师</ApplicationTitle>
+    <ApplicationTitle>小欧公爵和小耶牧师桌宠</ApplicationTitle>
     <RuntimeIdentifiers>osx-arm64;osx-x64</RuntimeIdentifiers>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>

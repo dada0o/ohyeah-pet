@@ -517,8 +517,8 @@ internal sealed class PetWorld
         var groupTop = Math.Clamp((_cat.Position.Y + _dog.Position.Y) / 2 - ScalePixels(80), area.Top + ScalePixels(24), area.Bottom - _dog.PixelHeight - ScalePixels(145));
         var catVersion = PreparePairPet(_cat);
         var dogVersion = PreparePairPet(_dog);
-        _cat.SetEdgePeekPose(true, fromLeft);
-        _dog.SetEdgePeekPose(true, fromLeft);
+        _cat.SetEdgePeekPose(true, fromLeft, reverseLean: true);
+        _dog.SetEdgePeekPose(true, fromLeft, reverseLean: true);
         _cat.Speak(Pick("嘘，小耶跟紧一点。", "我们藏好啦。", "先别出声。"), 2300);
         _dog.Speak(Pick("我在小欧下面～", "一上一下，刚刚好！", "嘿嘿，偷偷看一眼。"), 2300);
         await Task.WhenAll(
