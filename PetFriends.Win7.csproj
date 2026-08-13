@@ -10,6 +10,7 @@
     <ApplicationIcon>Assets\pet.ico</ApplicationIcon>
     <AssemblyName>小欧公爵和小耶牧师桌宠-Win7兼容版</AssemblyName>
     <RootNamespace>PetFriends</RootNamespace>
+    <Version>1.2.0</Version>
     <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**;PetFriends.Mac\**</DefaultItemExcludes>
     <AppConfig>App.Win7.config</AppConfig>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>

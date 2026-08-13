@@ -15,7 +15,7 @@ case "$ARCH" in
 esac
 
 APP_NAME="小欧公爵和小耶牧师桌宠"
-APP_VERSION="${PETFRIENDS_VERSION:-1.1.1}"
+APP_VERSION="${PETFRIENDS_VERSION:-1.2.0}"
 APP_VERSION="${APP_VERSION#v}"
 if [[ "${GITHUB_REF_TYPE:-}" == "tag" && "${GITHUB_REF_NAME:-}" == v* ]]; then
   APP_VERSION="${GITHUB_REF_NAME#v}"

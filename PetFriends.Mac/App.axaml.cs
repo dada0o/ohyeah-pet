@@ -19,6 +19,7 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            AutostartService.InitializeDefault();
             _world = new PetWorld(desktop);
             _world.Start();
         }

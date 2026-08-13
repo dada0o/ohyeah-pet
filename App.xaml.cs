@@ -34,6 +34,7 @@ public partial class App : System.Windows.Application
         TaskScheduler.UnobservedTaskException += (_, args) =>
             RuntimeLog.WriteException("TaskScheduler", args.Exception);
         RuntimeLog.Write($"Started v{typeof(App).Assembly.GetName().Version} on Windows {Compat.WindowsVersion}; safe rendering: {Compat.UseSafeRendering}.");
+        AutostartService.InitializeDefault();
         if (Compat.IsLegacyWindows)
         {
             Timeline.DesiredFrameRateProperty.OverrideMetadata(

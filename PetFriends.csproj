@@ -10,7 +10,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>小欧公爵和小耶牧师桌宠</AssemblyName>
     <RootNamespace>PetFriends</RootNamespace>
-    <Version>1.1.2</Version>
+    <Version>1.2.0</Version>
     <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**;PetFriends.Mac\**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
