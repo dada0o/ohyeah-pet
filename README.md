@@ -21,7 +21,7 @@ macOS 最新版：**v1.2.1**；Windows 当前稳定版：**v1.2.0**。请选择�
 | --- | --- | --- | --- |
 | Windows 10 / 11（64 位） | [直接下载 EXE](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-Windows10-11-x64.exe) | [下载 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-Windows10-11-x64.zip) | EXE 下载后双击即可使用；ZIP 需先完整解压 |
 | Windows 7 SP1（32/64 位） | [下载 .NET 3.5.1 免安装版 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-Windows7-NoInstall-x86-x64.zip) | — | 完整解压后直接运行，不需要安装 .NET Framework 4.8 |
-| macOS Apple 芯片（M1/M2/M3/M4 等） | [下载 v1.2.1 DMG](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Apple-Silicon.dmg) | [下载 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Apple-Silicon.zip) | 推荐使用 DMG |
+| macOS Apple 芯片（M1/M2/M3/M4 等） | [下载 v1.2.1 DMG](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Apple-Silicon.dmg) | — | 推荐使用 DMG |
 | macOS Intel 芯片 | [下载 v1.2.1 DMG](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Intel.dmg) | [下载 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Intel.zip) | 推荐使用 DMG |
 
 [查看 macOS v1.2.1 版本说明和全部文件](https://github.com/dada0o/ohyeah-pet/releases/tag/v1.2.1)
