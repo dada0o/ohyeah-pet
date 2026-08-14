@@ -94,7 +94,7 @@ internal sealed class PetWindow : Window
         transforms.Children.Add(_rotate);
         transforms.Children.Add(_translate);
 
-        using var stream = AssetLoader.Open(new Uri($"avares://PetFriends.Mac/Assets/{assetName}"));
+        using var stream = AssetLoader.Open(new Uri($"avares://PetFriends/Assets/{assetName}"));
         _petImage = new Image
         {
             Source = new Bitmap(stream),

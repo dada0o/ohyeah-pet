@@ -31,6 +31,7 @@ internal sealed class PetWorld
     private readonly DispatcherTimer _lifeTimer = new() { Interval = TimeSpan.FromSeconds(4) };
     private readonly DispatcherTimer _interactionTimer = new() { Interval = TimeSpan.FromSeconds(7) };
     private readonly DispatcherTimer _proximityTimer = new() { Interval = TimeSpan.FromMilliseconds(600) };
+    private readonly MacWindowTracker _windowTracker = new();
     private readonly string[] _catLines =
     [
         "本公爵允许你摸一下。", "今天也要优雅地发呆。", "小耶，你的眼镜歪啦。", "窗外有没有小鸟？",
@@ -83,10 +84,12 @@ internal sealed class PetWorld
         Configure(_dog);
         _cat.Show();
         _dog.Show();
+        _windowTracker.TrackForegroundApplication();
 
         var area = GetFocusArea();
-        SetPosition(_cat, area.Right - _cat.PixelWidth * 2 - ScalePixels(60), area.Bottom - _cat.PixelHeight + ScalePixels(24));
-        SetPosition(_dog, area.Right - _dog.PixelWidth - ScalePixels(20), area.Bottom - _dog.PixelHeight + ScalePixels(24));
+        var resting = GetFocusRestingPositions(area);
+        SetPosition(_cat, resting.CatLeft, resting.Top);
+        SetPosition(_dog, resting.DogLeft, resting.Top);
         _cat.Speak("我是小欧公爵，摸摸看？", 3400);
         _dog.Speak("我是小耶牧师，请多关照～", 3400);
 
@@ -182,8 +185,21 @@ internal sealed class PetWorld
         if (DateTime.UtcNow >= _nextAdventure && roll < .22)
         {
             _nextAdventure = DateTime.UtcNow.AddSeconds(Random.Shared.Next(14, 24));
-            if (_activityMode == ActivityMode.FullScreen && Random.Shared.Next(3) == 0) HideAtScreenEdge(force: false);
-            else StartFreeRun(pet);
+            if (_activityMode == ActivityMode.Focus)
+            {
+                StartFreeRun(pet);
+            }
+            else
+            {
+                switch (Random.Shared.Next(5))
+                {
+                    case 0: StartFreeRun(pet); break;
+                    case 1: HideAtScreenEdge(force: false); break;
+                    case 2: PerchOnWindow(pet); break;
+                    case 3: HideBehindCurrentWindow(pet); break;
+                    default: PeekFromCurrentWindowEdge(force: false); break;
+                }
+            }
         }
         else if (roll < .4) pet.Wiggle();
         else if (roll < .56) pet.Hop();
@@ -201,6 +217,7 @@ internal sealed class PetWorld
 
     private void ProximityTick(object? sender, EventArgs e)
     {
+        _windowTracker.TrackForegroundApplication();
         if (_quiet || _isCuddling || _isPairActivity || _cat.IsBusy || _dog.IsBusy || _cat.IsDragging || _dog.IsDragging) return;
         var close = DistanceBetweenPets() < ScalePixels(185);
         if (close && !_wereClose && DateTime.UtcNow >= _nextInteraction)
@@ -230,12 +247,83 @@ internal sealed class PetWorld
 
     private void TriggerRandomPairInteraction()
     {
-        if (Random.Shared.Next(8) == 0)
+        var choice = Random.Shared.Next(_pairScenes.Length + 3);
+        if (choice == 0)
         {
             BeginCuddle();
             return;
         }
-        PlayPairScene(_pairScenes[Random.Shared.Next(_pairScenes.Length)]);
+        if (choice == 1)
+        {
+            PairDialogue();
+            return;
+        }
+        if (choice == 2)
+        {
+            PlayChase();
+            return;
+        }
+        PlayPairScene(_pairScenes[choice - 3]);
+    }
+
+    private async void PairDialogue()
+    {
+        if (!BeginPairActivity()) return;
+        await MoveCloseTogether(500);
+        var dialogue = Random.Shared.Next(8);
+        var lines = dialogue switch
+        {
+            0 => ("小耶，今天也一起玩吧。", "好呀！一直在一起～"),
+            1 => ("累了就靠过来吧。", "嘿嘿，贴一下～"),
+            2 => ("窗边的位置给你留着。", "那我们一起晒太阳～"),
+            3 => ("今天的任务：好好休息。", "遵命！休息也要认真～"),
+            4 => ("小耶，今天过得怎么样？", "有小欧陪着，特别好～"),
+            5 => ("你刚才是不是偷吃点心了？", "只、只吃了一小口～"),
+            6 => ("小耶，别跑太远。", "知道啦，我会回来找你～"),
+            _ => ("……可以，只多一会儿。", "今天要不要多贴一会儿？")
+        };
+        _cat.Speak(lines.Item1, 3300);
+        _dog.Speak(lines.Item2, 3300);
+        _cat.Burst("♥", Color.FromRgb(205, 96, 126));
+        _dog.Burst("♥", Color.FromRgb(205, 96, 126));
+        _cat.Wiggle();
+        _dog.Wiggle();
+        await Task.Delay(3000);
+        EndPairActivity();
+    }
+
+    private async void PlayChase()
+    {
+        if (!BeginPairActivity()) return;
+        var area = GetActivityArea();
+        var margin = ScalePixels(20);
+        var targetX = Math.Clamp(
+            _dog.Position.X + (Random.Shared.NextDouble() - .5) * ScalePixels(560),
+            area.Left + margin,
+            area.Right - _dog.PixelWidth - margin);
+        var targetY = Math.Clamp(
+            _dog.Position.Y + (Random.Shared.NextDouble() - .5) * ScalePixels(420),
+            area.Top + margin,
+            area.Bottom - _dog.PixelHeight + ScalePixels(18));
+        _dog.Speak("小欧，来追我呀！", 2300);
+        _cat.Speak("站住，小耶！", 2300);
+        var dogVersion = PreparePairPet(_dog);
+        var catVersion = PreparePairPet(_cat);
+        var dogRun = GlideTo(_dog, targetX, targetY, 1500, dogVersion);
+        await Task.Delay(260);
+        var catRun = GlideTo(
+            _cat,
+            Math.Clamp(targetX - ScalePixels(28), area.Left, area.Right - _cat.PixelWidth),
+            Math.Clamp(targetY + ScalePixels(18), area.Top, area.Bottom - _cat.PixelHeight + ScalePixels(24)),
+            1650,
+            catVersion);
+        await Task.WhenAll(dogRun, catRun);
+        if (!_isPairActivity) return;
+        _dog.Speak("嘿嘿，被追到了～", 2100);
+        _cat.Speak("这次算你跑得快。", 2100);
+        _dog.Hop(hearts: true);
+        await Task.Delay(1900);
+        EndPairActivity();
     }
 
     private async void PlayPairScene(PairScene scene)
@@ -290,9 +378,16 @@ internal sealed class PetWorld
     {
         StopMotion(_cat);
         StopMotion(_dog);
+        RestorePetLayer(_cat);
+        RestorePetLayer(_dog);
         _cat.IsBusy = false;
         _dog.IsBusy = false;
         _isPairActivity = false;
+        if (_activityMode == ActivityMode.Focus)
+        {
+            FollowToFocusArea(_cat);
+            FollowToFocusArea(_dog);
+        }
     }
 
     private async void BeginCuddle()
@@ -308,9 +403,11 @@ internal sealed class PetWorld
         var cuddle = new CuddleWindow();
         cuddle.Play(Pick("贴贴时间 ♥", "最喜欢和你一起！", "友情充电中……"));
         var area = GetActivityArea();
+        var cuddleWidth = ScalePixels(cuddle.Width);
+        var cuddleHeight = ScalePixels(cuddle.Height);
         SetPosition(cuddle,
-            Math.Clamp(centerX - cuddle.Width * cuddle.RenderScaling / 2, area.Left, area.Right - cuddle.Width * cuddle.RenderScaling),
-            Math.Clamp(bottom - cuddle.Height * cuddle.RenderScaling, area.Top, area.Bottom - cuddle.Height * cuddle.RenderScaling));
+            Math.Clamp(centerX - cuddleWidth / 2, area.Left, Math.Max(area.Left, area.Right - cuddleWidth)),
+            Math.Clamp(bottom - cuddleHeight, area.Top, Math.Max(area.Top, area.Bottom - cuddleHeight)));
         await Task.Delay(4300);
         cuddle.Close();
         SetPosition(_cat, Math.Clamp(centerX - _cat.PixelWidth + ScalePixels(26), area.Left, area.Right - _cat.PixelWidth), Math.Clamp(bottom - _cat.PixelHeight, area.Top, area.Bottom - _cat.PixelHeight + ScalePixels(24)));
@@ -351,6 +448,9 @@ internal sealed class PetWorld
             };
             playMenu.Items.Add(MenuItem(header, (_, _) => PlayPairScene(scene)));
         }
+        playMenu.Items.Add(new Separator());
+        playMenu.Items.Add(MenuItem("追逐游戏", (_, _) => PlayChase()));
+        playMenu.Items.Add(MenuItem("聊聊天", (_, _) => PairDialogue()));
         menu.Items.Add(playMenu);
 
         var activityMenu = new MenuItem { Header = "活动范围" };
@@ -361,6 +461,9 @@ internal sealed class PetWorld
         var roamMenu = new MenuItem { Header = "自由活动动作" };
         roamMenu.Items.Add(MenuItem("到处跑跑", (_, _) => StartFreeRun(pet, allowFullScreen: true)));
         roamMenu.Items.Add(MenuItem("一起躲到屏幕边缘", (_, _) => HideAtScreenEdge(force: true)));
+        roamMenu.Items.Add(MenuItem("坐到当前窗口上面", (_, _) => PerchOnWindow(pet, force: true)));
+        roamMenu.Items.Add(MenuItem("躲到当前窗口后面", (_, _) => HideBehindCurrentWindow(pet, force: true)));
+        roamMenu.Items.Add(MenuItem("从当前窗口边缘探头", (_, _) => PeekFromCurrentWindowEdge(force: true)));
         roamMenu.Items.Add(MenuItem("回到桌面右下角", (_, _) => BringBack()));
         menu.Items.Add(roamMenu);
         menu.Items.Add(new Separator());
@@ -424,11 +527,12 @@ internal sealed class PetWorld
         {
             _focusAnchor ??= new Point((_cat.Center.X + _dog.Center.X) / 2, (_cat.Center.Y + _dog.Center.Y) / 2);
             var area = GetFocusArea();
+            var resting = GetFocusRestingPositions(area);
             _cat.Speak("专注陪伴模式：就在这里陪你。", 3200);
             _dog.Speak("我们会在你放的位置附近活动～", 3200);
             await Task.WhenAll(
-                GlideSolo(_cat, area.Right - _cat.PixelWidth * 2 - ScalePixels(35), area.Bottom - _cat.PixelHeight + ScalePixels(24), 750),
-                GlideSolo(_dog, area.Right - _dog.PixelWidth - ScalePixels(12), area.Bottom - _dog.PixelHeight + ScalePixels(24), 750));
+                GlideSolo(_cat, resting.CatLeft, resting.Top, 750),
+                GlideSolo(_dog, resting.DogLeft, resting.Top, 750));
         }
         else
         {
@@ -451,10 +555,27 @@ internal sealed class PetWorld
     {
         if (_activityMode != ActivityMode.Focus || pet.IsDragging) return;
         var area = GetFocusArea();
-        if (IsInsideArea(pet, area)) return;
+        var companion = pet == _cat ? _dog : _cat;
+        var gap = GetFocusPairGap(GetWorkArea().Width);
+        var closeDistance = (pet.PixelWidth + companion.PixelWidth) / 2 + gap + ScalePixels(12);
+        if (IsInsideArea(pet, area) && DistanceBetweenPets() <= closeDistance) return;
+
+        var preferredLeft = pet == _cat
+            ? companion.Position.X - pet.PixelWidth - gap
+            : companion.Position.X + companion.PixelWidth + gap;
+        var alternateLeft = pet == _cat
+            ? companion.Position.X + companion.PixelWidth + gap
+            : companion.Position.X - pet.PixelWidth - gap;
+        if (preferredLeft < area.Left || preferredLeft + pet.PixelWidth > area.Right)
+        {
+            preferredLeft = alternateLeft;
+        }
+
+        var targetLeft = Math.Clamp(preferredLeft, area.Left, area.Right - pet.PixelWidth);
+        var targetTop = Math.Clamp(companion.Position.Y, area.Top, area.Bottom - pet.PixelHeight + ScalePixels(24));
         CancelActivity(pet);
         pet.Speak(Pick("我也过来啦～", "等等我，一起待在这里。", "换到这边陪你。"), 2400);
-        await GlideSolo(pet, area.Right - pet.PixelWidth - ScalePixels(18), area.Bottom - pet.PixelHeight + ScalePixels(24), 760);
+        await GlideSolo(pet, targetLeft, targetTop, 760);
         ClampToActivityArea(pet);
     }
 
@@ -462,7 +583,8 @@ internal sealed class PetWorld
     {
         if (_isCuddling || _isPairActivity) return;
         var area = GetActivityArea();
-        var center = Math.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + ScalePixels(190), area.Right - ScalePixels(190));
+        var centerMargin = Math.Min(ScalePixels(190), area.Width / 2);
+        var center = Math.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + centerMargin, area.Right - centerMargin);
         var top = area.Bottom - Math.Max(_cat.PixelHeight, _dog.PixelHeight) + ScalePixels(24);
         SetPosition(_cat, center - _cat.PixelWidth + ScalePixels(45), top);
         SetPosition(_dog, center - ScalePixels(45), top);
@@ -554,6 +676,256 @@ internal sealed class PetWorld
         EndPairActivity();
     }
 
+    private async void PerchOnWindow(PetWindow pet, bool force = false)
+    {
+        if (_activityMode != ActivityMode.FullScreen && !force)
+        {
+            pet.Speak("切换到全屏撒欢，才能去窗口上坐哦。", 2600);
+            return;
+        }
+        if (!BeginSoloActivity(pet)) return;
+        var activityVersion = pet.ActivityVersion;
+        if (!TryGetPreferredHostWindow(out _, out var hostBounds))
+        {
+            pet.Speak("现在没有找到可以坐的应用窗口。", 2300);
+            EndSoloActivity(pet);
+            return;
+        }
+
+        var workArea = GetWorkAreaAt(hostBounds.Left + hostBounds.Width / 2, hostBounds.Top + hostBounds.Height / 2);
+        var horizontalInset = ScalePixels(28);
+        var availableWidth = Math.Max(ScalePixels(30), hostBounds.Width - pet.PixelWidth - horizontalInset * 2);
+        var targetX = Math.Clamp(
+            hostBounds.Left + horizontalInset + Random.Shared.NextDouble() * availableWidth,
+            workArea.Left,
+            workArea.Right - pet.PixelWidth);
+        var enoughRoomAbove = hostBounds.Top - workArea.Top >= pet.PixelHeight * .52;
+        var targetY = enoughRoomAbove
+            ? hostBounds.Top - pet.PixelHeight + ScalePixels(30)
+            : hostBounds.Top - ScalePixels(PetWindow.BubbleHeight) + ScalePixels(8);
+        pet.Speak(Pick("坐一下～", "这里好舒服。", "休息一小会儿～", "就待在这里吧。"), 2600);
+        await GlideTo(pet, targetX, targetY, 1050, activityVersion);
+        if (!IsSameActivity(pet, activityVersion)) return;
+        pet.BounceTwice("★");
+        await Task.Delay(Random.Shared.Next(3500, 6200));
+        if (!IsSameActivity(pet, activityVersion)) return;
+        pet.Speak(Pick("休息好啦！", "再活动一下。", "精神满满。"), 1900);
+        EndSoloActivity(pet);
+    }
+
+    private async void HideBehindCurrentWindow(PetWindow pet, bool force = false)
+    {
+        if (_activityMode != ActivityMode.FullScreen && !force)
+        {
+            pet.Speak("切换到全屏撒欢，才会躲到应用后面哦。", 2600);
+            return;
+        }
+        if (!BeginSoloActivity(pet)) return;
+        var activityVersion = pet.ActivityVersion;
+        if (!TryGetPreferredHostWindow(out var host, out var hostBounds))
+        {
+            pet.Speak("现在没有找到可以躲藏的应用窗口。", 2400);
+            EndSoloActivity(pet);
+            return;
+        }
+
+        var workArea = GetWorkAreaAt(hostBounds.Left + hostBounds.Width / 2, hostBounds.Top + hostBounds.Height / 2);
+        var canReallyHide = hostBounds.Top - workArea.Top >= ScalePixels(58) && !IsMaximized(hostBounds, workArea);
+        var horizontalInset = ScalePixels(36);
+        var availableWidth = Math.Max(ScalePixels(30), hostBounds.Width - pet.PixelWidth - horizontalInset * 2);
+        var targetLeft = Math.Clamp(
+            hostBounds.Left + horizontalInset + Random.Shared.NextDouble() * availableWidth,
+            workArea.Left,
+            workArea.Right - pet.PixelWidth);
+        var targetTop = canReallyHide
+            ? hostBounds.Top - ScalePixels(54)
+            : Math.Clamp(hostBounds.Top - ScalePixels(PetWindow.BubbleHeight), workArea.Top - ScalePixels(PetWindow.BubbleHeight), workArea.Bottom - pet.PixelHeight);
+        pet.Speak(Pick("我藏到窗口后面啦。", "嘘，只露一点点～", "猜猜我在哪里？"), 2500);
+        await GlideTo(pet, targetLeft, targetTop, 850, activityVersion);
+        if (!IsSameActivity(pet, activityVersion)) return;
+
+        if (canReallyHide)
+        {
+            pet.Topmost = false;
+            MacWindowTracker.OrderBelow(pet, host.WindowNumber);
+        }
+        pet.Burst("…", Color.FromRgb(122, 136, 158));
+        await Task.Delay(Random.Shared.Next(2800, 4600));
+        if (!IsSameActivity(pet, activityVersion)) return;
+        RestorePetLayer(pet);
+        pet.Speak("找到我啦！", 1900);
+        pet.Hop(hearts: true);
+        EndSoloActivity(pet);
+    }
+
+    private async void PeekFromCurrentWindowEdge(bool force = false)
+    {
+        if (_activityMode != ActivityMode.FullScreen && !force)
+        {
+            _cat.Speak("全屏撒欢时才会自动去应用旁边探头哦。", 2400);
+            return;
+        }
+        if (!BeginPairActivity()) return;
+        if (!TryGetPreferredHostWindow(out var host, out var bounds))
+        {
+            _cat.Speak("现在没有找到可以探头的地方。", 2200);
+            _dog.Speak("那我们晚一点再一起去看看～", 2200);
+            EndPairActivity();
+            return;
+        }
+
+        var workArea = GetWorkAreaAt(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
+        var leftRoom = Math.Max(0, bounds.Left - workArea.Left);
+        var rightRoom = Math.Max(0, workArea.Right - bounds.Right);
+        var pairCenterX = (_cat.Center.X + _dog.Center.X) / 2;
+        var windowCenterX = (bounds.Left + bounds.Right) / 2;
+        var fromLeft = Math.Abs(leftRoom - rightRoom) > ScalePixels(28)
+            ? leftRoom > rightRoom
+            : pairCenterX <= windowCenterX;
+        var exteriorRoom = fromLeft ? leftRoom : rightRoom;
+        var useNaturalWindowOcclusion = exteriorRoom >= ScalePixels(18) && !IsMaximized(bounds, workArea);
+        var targetLeft = fromLeft
+            ? bounds.Left - _cat.PixelWidth * .38
+            : bounds.Right - _cat.PixelWidth * .62;
+        if (!useNaturalWindowOcclusion)
+        {
+            targetLeft = fromLeft
+                ? workArea.Left - _cat.PixelWidth * .64
+                : workArea.Right - _cat.PixelWidth * .36;
+        }
+
+        var verticalGap = Math.Clamp(bounds.Height * .22, ScalePixels(112), ScalePixels(138));
+        var pairHeight = _dog.PixelHeight + verticalGap;
+        var topMin = Math.Max(workArea.Top + ScalePixels(16), bounds.Top + ScalePixels(28));
+        var topMax = Math.Min(workArea.Bottom - pairHeight - ScalePixels(12), bounds.Bottom - pairHeight - ScalePixels(28));
+        var catTop = topMax >= topMin
+            ? Math.Clamp(bounds.Top + bounds.Height * .46 - pairHeight / 2, topMin, topMax)
+            : Math.Clamp(bounds.Top + bounds.Height / 2 - pairHeight / 2, workArea.Top + ScalePixels(8), Math.Max(workArea.Top + ScalePixels(8), workArea.Bottom - pairHeight - ScalePixels(8)));
+        var dogTop = catTop + verticalGap;
+
+        var catVersion = PreparePairPet(_cat);
+        var dogVersion = PreparePairPet(_dog);
+        _cat.SetEdgePeekPose(true, fromLeft);
+        _dog.SetEdgePeekPose(true, fromLeft);
+        _cat.Speak(Pick("小耶，跟本公爵一起看看。", "嘘，一上一下探个头。", "我们从这边悄悄看看。"), 2600);
+        _dog.Speak(Pick("我在小欧下面～", "一起探头，不要被发现啦！", "小耶准备好啦～"), 2600);
+        await Task.WhenAll(
+            GlideTo(_cat, targetLeft, catTop, 880, catVersion),
+            GlideTo(_dog, targetLeft, dogTop, 880, dogVersion));
+        if (!IsCurrentPairActivity(catVersion, dogVersion))
+        {
+            FinishPairPeek(fromLeft);
+            return;
+        }
+
+        _cat.SetEdgePeekPose(true, fromLeft);
+        _dog.SetEdgePeekPose(true, fromLeft);
+        if (useNaturalWindowOcclusion)
+        {
+            _cat.Topmost = _dog.Topmost = false;
+            MacWindowTracker.OrderBelow(_cat, host.WindowNumber);
+            MacWindowTracker.OrderBelow(_dog, host.WindowNumber);
+        }
+        _cat.Burst("…", Color.FromRgb(126, 139, 162));
+        _dog.Burst("…", Color.FromRgb(126, 139, 162));
+        await Task.Delay(Random.Shared.Next(2700, 4300));
+        if (!IsCurrentPairActivity(catVersion, dogVersion))
+        {
+            FinishPairPeek(fromLeft);
+            return;
+        }
+
+        RestorePetLayer(_cat);
+        RestorePetLayer(_dog);
+        _cat.SetEdgePeekPose(false, fromLeft);
+        _dog.SetEdgePeekPose(false, fromLeft);
+        var emergeLeft = fromLeft
+            ? Math.Clamp(bounds.Left + ScalePixels(10), workArea.Left + ScalePixels(6), workArea.Right - _cat.PixelWidth - ScalePixels(6))
+            : Math.Clamp(bounds.Right - _cat.PixelWidth - ScalePixels(10), workArea.Left + ScalePixels(6), workArea.Right - _cat.PixelWidth - ScalePixels(6));
+        await Task.WhenAll(
+            GlideTo(_cat, emergeLeft, catTop, 600, catVersion),
+            GlideTo(_dog, emergeLeft, dogTop, 600, dogVersion));
+        if (!IsCurrentPairActivity(catVersion, dogVersion))
+        {
+            FinishPairPeek(fromLeft);
+            return;
+        }
+        _cat.Hop(hearts: true);
+        _dog.Hop(hearts: true);
+        FinishPairPeek(fromLeft);
+    }
+
+    private bool BeginSoloActivity(PetWindow pet)
+    {
+        if (_isCuddling || _isPairActivity || pet.IsBusy || pet.IsDragging) return false;
+        CancelActivity(pet);
+        pet.IsBusy = true;
+        pet.ActivityVersion++;
+        return true;
+    }
+
+    private static bool IsSameActivity(PetWindow pet, int activityVersion)
+    {
+        return pet.IsBusy && pet.ActivityVersion == activityVersion;
+    }
+
+    private bool IsCurrentPairActivity(int catVersion, int dogVersion)
+    {
+        return _isPairActivity && IsSameActivity(_cat, catVersion) && IsSameActivity(_dog, dogVersion);
+    }
+
+    private void FinishPairPeek(bool fromLeft)
+    {
+        RestorePetLayer(_cat);
+        RestorePetLayer(_dog);
+        _cat.SetEdgePeekPose(false, fromLeft);
+        _dog.SetEdgePeekPose(false, fromLeft);
+        EndPairActivity();
+    }
+
+    private void EndSoloActivity(PetWindow pet)
+    {
+        RestorePetLayer(pet);
+        StopMotion(pet);
+        pet.IsBusy = false;
+        if (_activityMode == ActivityMode.Focus) FollowToFocusArea(pet);
+        else ClampToActivityArea(pet);
+    }
+
+    private bool TryGetPreferredHostWindow(out MacHostWindow host, out Area bounds)
+    {
+        if (!_windowTracker.TryGetPreferredWindow(out host))
+        {
+            bounds = default;
+            return false;
+        }
+
+        var primaryWidth = _cat.Screens.Primary?.Bounds.Width ?? _windowTracker.MainDisplayWidth;
+        var coordinateScale = Math.Clamp(primaryWidth / _windowTracker.MainDisplayWidth, .5, 4);
+        bounds = new Area(
+            host.Left * coordinateScale,
+            host.Top * coordinateScale,
+            host.Width * coordinateScale,
+            host.Height * coordinateScale);
+        var workArea = GetWorkAreaAt(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
+        return bounds.Width >= ScalePixels(280) && bounds.Height >= ScalePixels(180)
+            && bounds.Right > workArea.Left && bounds.Left < workArea.Right
+            && bounds.Bottom > workArea.Top && bounds.Top < workArea.Bottom;
+    }
+
+    private static bool IsMaximized(Area bounds, Area workArea)
+    {
+        return bounds.Width >= workArea.Width * .94
+            && bounds.Height >= workArea.Height * .88
+            && Math.Abs(bounds.Top - workArea.Top) <= workArea.Height * .05;
+    }
+
+    private static void RestorePetLayer(PetWindow pet)
+    {
+        pet.Topmost = true;
+        pet.SetEdgePeekPose(false, true);
+    }
+
     private static async Task GlideTo(PetWindow pet, double targetLeft, double targetTop, int milliseconds, int activityVersion)
     {
         var startLeft = pet.Position.X;
@@ -576,13 +948,14 @@ internal sealed class PetWorld
         return ++pet.ActivityVersion;
     }
 
-    private static void CancelActivity(PetWindow pet)
+    private void CancelActivity(PetWindow pet)
     {
         pet.ActivityVersion++;
         pet.IsBusy = false;
         pet.IgnoreActivityBounds = false;
         StopMotion(pet);
         pet.SetEdgePeekPose(false, true);
+        RestorePetLayer(pet);
     }
 
     private static void StopMotion(PetWindow pet)
@@ -603,8 +976,15 @@ internal sealed class PetWorld
     private Area GetFocusArea()
     {
         var workArea = GetWorkArea();
-        var width = Math.Min(ScalePixels(580), workArea.Width);
-        var height = Math.Min(ScalePixels(380), workArea.Height);
+        var maxWidth = Math.Min(ScalePixels(500), workArea.Width);
+        var minWidth = Math.Min(
+            _cat.PixelWidth + _dog.PixelWidth + GetFocusPairGap(workArea.Width) + ScalePixels(48),
+            maxWidth);
+        var width = Math.Clamp(workArea.Width * .30, minWidth, maxWidth);
+
+        var maxHeight = Math.Min(ScalePixels(340), workArea.Height);
+        var minHeight = Math.Min(Math.Max(_cat.PixelHeight, _dog.PixelHeight) + ScalePixels(72), maxHeight);
+        var height = Math.Clamp(workArea.Height * .34, minHeight, maxHeight);
         var defaultCenter = new Point(workArea.Right - width / 2, workArea.Bottom - height / 2);
         var anchor = _focusAnchor ?? defaultCenter;
         var left = Math.Clamp(anchor.X - width / 2, workArea.Left, workArea.Right - width);
@@ -612,9 +992,33 @@ internal sealed class PetWorld
         return new Area(left, top, width, height);
     }
 
+    private double GetFocusPairGap(double screenWidth)
+    {
+        return Math.Clamp(screenWidth * .008, ScalePixels(8), ScalePixels(18));
+    }
+
+    private (double CatLeft, double DogLeft, double Top) GetFocusRestingPositions(Area area)
+    {
+        var gap = GetFocusPairGap(GetWorkArea().Width);
+        var groupWidth = _cat.PixelWidth + gap + _dog.PixelWidth;
+        var maxGroupLeft = Math.Max(area.Left, area.Right - groupWidth);
+        var groupLeft = Math.Clamp(area.Right - groupWidth - ScalePixels(12), area.Left, maxGroupLeft);
+        var top = area.Bottom - Math.Max(_cat.PixelHeight, _dog.PixelHeight) + ScalePixels(24);
+        return (groupLeft, groupLeft + _cat.PixelWidth + gap, top);
+    }
+
     private Area GetWorkArea()
     {
         var bounds = _cat.Screens.ScreenFromPoint(_cat.Position)?.WorkingArea
+                     ?? _cat.Screens.Primary?.WorkingArea
+                     ?? new PixelRect(0, 0, 1440, 900);
+        return new Area(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+    }
+
+    private Area GetWorkAreaAt(double x, double y)
+    {
+        var point = new PixelPoint((int)Math.Round(x), (int)Math.Round(y));
+        var bounds = _cat.Screens.ScreenFromPoint(point)?.WorkingArea
                      ?? _cat.Screens.Primary?.WorkingArea
                      ?? new PixelRect(0, 0, 1440, 900);
         return new Area(bounds.X, bounds.Y, bounds.Width, bounds.Height);
@@ -650,14 +1054,19 @@ internal sealed class PetWorld
 
     private void CreateTrayIcon()
     {
-        using var stream = AssetLoader.Open(new Uri("avares://PetFriends.Mac/Assets/cat.png"));
+        using var stream = AssetLoader.Open(new Uri("avares://PetFriends/Assets/cat.png"));
         var menu = new NativeMenu();
         menu.Items.Add(NativeMenuItem("叫回桌面", BringBack));
         menu.Items.Add(NativeMenuItem("专注陪伴模式", () => SetActivityMode(ActivityMode.Focus)));
         menu.Items.Add(NativeMenuItem("全屏撒欢模式", () => SetActivityMode(ActivityMode.FullScreen)));
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(NativeMenuItem("让他们贴贴", GatherAndCuddle));
+        menu.Items.Add(NativeMenuItem("亲一下脸颊", () => PlayPairScene(_pairScenes[2])));
         menu.Items.Add(NativeMenuItem("随机互动", TriggerRandomPairInteraction));
+        menu.Items.Add(new NativeMenuItemSeparator());
+        menu.Items.Add(NativeMenuItem("坐到当前窗口上面", () => PerchOnWindow(Random.Shared.Next(2) == 0 ? _cat : _dog, force: true)));
+        menu.Items.Add(NativeMenuItem("躲到当前窗口后面", () => HideBehindCurrentWindow(Random.Shared.Next(2) == 0 ? _cat : _dog, force: true)));
+        menu.Items.Add(NativeMenuItem("从当前窗口边缘探头", () => PeekFromCurrentWindowEdge(force: true)));
         menu.Items.Add(new NativeMenuItemSeparator());
         _trayAutostartItem = new NativeMenuItem("开机自动启动")
         {
@@ -711,8 +1120,17 @@ internal sealed class PetWorld
         CancelActivity(_dog);
         _isPairActivity = false;
         var area = GetActivityArea();
-        SetPosition(_cat, area.Right - _cat.PixelWidth * 2 - ScalePixels(55), area.Bottom - _cat.PixelHeight + ScalePixels(24));
-        SetPosition(_dog, area.Right - _dog.PixelWidth - ScalePixels(18), area.Bottom - _dog.PixelHeight + ScalePixels(24));
+        if (_activityMode == ActivityMode.Focus)
+        {
+            var resting = GetFocusRestingPositions(area);
+            SetPosition(_cat, resting.CatLeft, resting.Top);
+            SetPosition(_dog, resting.DogLeft, resting.Top);
+        }
+        else
+        {
+            SetPosition(_cat, area.Right - _cat.PixelWidth * 2 - ScalePixels(55), area.Bottom - _cat.PixelHeight + ScalePixels(24));
+            SetPosition(_dog, area.Right - _dog.PixelWidth - ScalePixels(18), area.Bottom - _dog.PixelHeight + ScalePixels(24));
+        }
         _cat.Show();
         _dog.Show();
         _cat.Speak("我们回来啦！");

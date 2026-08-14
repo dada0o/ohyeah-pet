@@ -25,7 +25,7 @@ internal sealed class CuddleWindow : Window
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.Manual;
 
-        using var stream = AssetLoader.Open(new Uri("avares://PetFriends.Mac/Assets/cuddle.png"));
+        using var stream = AssetLoader.Open(new Uri("avares://PetFriends/Assets/cuddle.png"));
         var image = new Image
         {
             Source = new Bitmap(stream),

@@ -2,19 +2,31 @@
 
 这是“小欧公爵和小耶牧师”桌宠的 macOS/Avalonia 版本。Windows WPF 工程保持不变，Mac 版本位于独立的 `PetFriends.Mac` 目录。
 
+## 下载最新版
+
+当前版本：**v1.2.1**。发布包已包含 .NET 运行环境，目标 Mac 不需要安装或下载其他组件。
+
+| Mac 类型 | DMG（推荐） | ZIP |
+| --- | --- | --- |
+| Apple Silicon（M1/M2/M3/M4 等） | [下载 DMG](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Apple-Silicon.dmg) | [下载 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Apple-Silicon.zip) |
+| Intel | [下载 DMG](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Intel.dmg) | [下载 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Intel.zip) |
+
 ## 已实现
 
 - 透明、无边框、始终置顶的双桌宠窗口
 - 单击摸摸、按住拖动、触控板辅助点击/鼠标右键菜单
 - 对话气泡、爱心、跳跃、摇摆和粒子动画
 - 自动散步、专注陪伴、全屏撒欢和屏幕边缘探头
+- 专注模式下根据屏幕尺寸自动调整活动范围和双宠间距
 - 自动靠近以及亲脸颊、碰鼻子、牵爪、击掌、跳舞、零食、打盹等双宠互动
-- 菜单栏状态图标、叫回桌面、切换模式和退出
+- 追逐游戏、双宠聊天以及右键菜单中的完整互动动作
+- 使用 macOS 原生窗口 API 识别其他应用窗口，支持坐到窗口上沿、躲到窗口后面和双宠从窗口边缘探头
+- 菜单栏状态图标、叫回桌面、切换模式、窗口互动和退出
 - 迷你、默认、大号三档尺寸以及安静模式
 - 默认开机自动启动，可从桌宠右键菜单或菜单栏图标随时关闭、重新开启
 - Apple Silicon（`osx-arm64`）和 Intel（`osx-x64`）自包含打包
 
-Windows 原版的“识别其他应用窗口并坐在窗口上沿/躲到窗口后面”依赖 Win32/DWM。Mac 版本当前改为屏幕范围活动与边缘探头，不请求 macOS 辅助功能权限。
+窗口互动使用系统公开的 Core Graphics / AppKit API，不需要辅助功能或屏幕录制权限。系统级窗口（例如桌面、Dock 和菜单栏）会被自动排除。
 
 ## 在 Mac 上构建
 
