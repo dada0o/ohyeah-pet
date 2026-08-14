@@ -232,7 +232,7 @@ internal sealed class PetWorld
     {
         if (!BeginPairActivity()) return;
         var area = GetActivityArea();
-        var centerX = Math.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + ScalePixels(160), area.Right - ScalePixels(160));
+        var centerX = GetSafePairCenter(area);
         var centerY = Math.Clamp((_cat.Center.Y + _dog.Center.Y) / 2, area.Top + ScalePixels(80), area.Bottom - ScalePixels(80));
         _dog.Speak(Pick("小欧，我来找你啦～", "一起玩一会儿吧！", "小欧，靠近一点嘛。"), 2500);
         _cat.Speak(Pick("慢一点，本公爵在这里。", "正好，本公爵也想找你。", "过来吧，小耶。"), 2500);
@@ -353,7 +353,7 @@ internal sealed class PetWorld
     private async Task MoveCloseTogether(int milliseconds)
     {
         var area = GetActivityArea();
-        var center = Math.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + ScalePixels(160), area.Right - ScalePixels(160));
+        var center = GetSafePairCenter(area);
         var targetTop = Math.Clamp(Math.Max(_cat.Position.Y, _dog.Position.Y), area.Top, area.Bottom - Math.Max(_cat.PixelHeight, _dog.PixelHeight) + ScalePixels(24));
         _cat.FaceDirection(1);
         _dog.FaceDirection(-1);
@@ -362,6 +362,12 @@ internal sealed class PetWorld
         await Task.WhenAll(
             GlideTo(_cat, center - _cat.PixelWidth + ScalePixels(14), targetTop, milliseconds, catVersion),
             GlideTo(_dog, center - ScalePixels(14), targetTop, milliseconds, dogVersion));
+    }
+
+    private double GetSafePairCenter(Area area)
+    {
+        var margin = Math.Min(ScalePixels(160), area.Width / 2);
+        return Math.Clamp((_cat.Center.X + _dog.Center.X) / 2, area.Left + margin, area.Right - margin);
     }
 
     private bool BeginPairActivity()
