@@ -58,7 +58,7 @@ public partial class App : System.Windows.Application
         catch (Exception exception)
         {
             RuntimeLog.WriteException("Startup", exception);
-            MessageBox.Show(
+            System.Windows.MessageBox.Show(
                 $"桌宠启动失败。请把下面的日志文件发给开发者：\n\n{RuntimeLog.FilePath}",
                 "小欧公爵和小耶牧师桌宠",
                 MessageBoxButton.OK,
