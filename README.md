@@ -15,18 +15,20 @@
 
 ## 下载与运行
 
-macOS 最新版：**v1.2.1**；Windows 当前稳定版：**v1.2.0**。请选择与你的系统和芯片匹配的文件：
+macOS 最新版：**v1.2.1**；Windows 当前稳定版：**v1.2.2**。请选择与你的系统和芯片匹配的文件：
 
 | 系统 | 推荐下载 | 备用下载 | 说明 |
 | --- | --- | --- | --- |
-| Windows 10 / 11（64 位） | [直接下载 EXE](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-Windows10-11-x64.exe) | [下载 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-Windows10-11-x64.zip) | EXE 下载后双击即可使用；ZIP 需先完整解压 |
-| Windows 7 SP1（32/64 位） | [下载 .NET 3.5.1 免安装版 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-Windows7-NoInstall-x86-x64.zip) | — | 完整解压后直接运行，不需要安装 .NET Framework 4.8 |
+| Windows 10 / 11（64 位） | [下载一键安装版 EXE](https://github.com/dada0o/ohyeah-pet/releases/download/windows-v1.2.2/PetFriends-v1.2.2-Windows10-11-x64.exe) | [下载便携版 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/windows-v1.2.2/PetFriends-v1.2.2-Windows10-11-x64-Portable.zip) | 推荐安装版；便携版必须完整解压，不能只复制 EXE |
+| Windows 7 SP1（32/64 位） | [下载 .NET 3.5.1 免安装版 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/windows-v1.2.2/PetFriends-v1.2.2-Windows7-NoInstall-x86-x64.zip) | — | 完整解压后直接运行，不需要安装 .NET Framework 4.8 |
 | macOS Apple 芯片（M1/M2/M3/M4 等） | [下载 v1.2.1 DMG](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Apple-Silicon.dmg) | — | 推荐使用 DMG |
 | macOS Intel 芯片 | [下载 v1.2.1 DMG](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Intel.dmg) | [下载 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.1/PetFriends-v1.2.1-macOS-Intel.zip) | 推荐使用 DMG |
 
 [查看 macOS v1.2.1 版本说明和全部文件](https://github.com/dada0o/ohyeah-pet/releases/tag/v1.2.1)
 
-Windows 10 和 Windows 11 使用同一个自包含版本，不需要另外安装 .NET。Windows 11 会自动启用兼容渲染模式，避免透明桌宠窗口触发显卡驱动异常；程序还会阻止重复启动，并把启动、退出或异常记录到 `%LOCALAPPDATA%\PetFriends\runtime.log`，便于区分软件重启和系统重启。
+[查看 Windows v1.2.2 版本说明和全部文件](https://github.com/dada0o/ohyeah-pet/releases/tag/windows-v1.2.2)
+
+Windows 10 和 Windows 11 使用同一个自包含版本，不需要另外安装 .NET 或 VC++ 运行库。v1.2.2 改为从完整依赖目录运行，避免旧版压缩单文件在部分电脑上启动时出现 BEX64 / `0xc0000409`；程序统一使用兼容渲染模式，并把更完整的启动阶段、退出或异常记录到 `%LOCALAPPDATA%\PetFriends\runtime.log`。
 
 Windows 7 SP1 使用单独的 `net35` 免安装版，依赖系统自带的 .NET Framework 3.5.1，不需要安装 .NET Framework 4.8。下载 ZIP 后须完整解压，并保留 EXE 与同名 EXE.config 在同一文件夹。
 
@@ -36,6 +38,8 @@ Windows 7 SP1 使用单独的 `net35` 免安装版，依赖系统自带的 .NET 
 
 | 版本 | 系统 | 下载 |
 | --- | --- | --- |
+| v1.2.2 | Windows 10 / 11 | [安装版 EXE](https://github.com/dada0o/ohyeah-pet/releases/download/windows-v1.2.2/PetFriends-v1.2.2-Windows10-11-x64.exe) · [便携版 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/windows-v1.2.2/PetFriends-v1.2.2-Windows10-11-x64-Portable.zip) |
+| v1.2.2 | Windows 7 | [免安装版 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/windows-v1.2.2/PetFriends-v1.2.2-Windows7-NoInstall-x86-x64.zip) |
 | v1.2.0 | Windows 10 / 11 | [EXE](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-Windows10-11-x64.exe) · [ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-Windows10-11-x64.zip) |
 | v1.2.0 | Windows 7 | [免安装版 ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-Windows7-NoInstall-x86-x64.zip) |
 | v1.2.0 | macOS Apple 芯片 | [DMG](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-macOS-Apple-Silicon.dmg) · [ZIP](https://github.com/dada0o/ohyeah-pet/releases/download/v1.2.0/PetFriends-v1.2.0-macOS-Apple-Silicon.zip) |
@@ -55,10 +59,10 @@ Windows 7 SP1 使用单独的 `net35` 免安装版，依赖系统自带的 .NET 
 需要安装 .NET 8 SDK：
 
 ```powershell
-./build-windows.ps1 -Version 1.2.0 -Architecture x64
+./build-windows.ps1 -Version 1.2.2 -Architecture x64
 ```
 
-输出包含可直接双击的版本化 EXE 和 ZIP。GitHub 的 Windows 工作流会在 `v*` 标签发布时自动构建 Windows 10/11 与 Win7 `.NET 3.5.1` 免安装版，并上传到对应 Release。
+输出包含可直接双击的一键安装 EXE 和带完整依赖的便携 ZIP。GitHub 的 Windows 工作流会在 `v*` 或 `windows-v*` 标签发布时自动构建 Windows 10/11 与 Win7 `.NET 3.5.1` 免安装版，并上传到对应 Release。
 
 ### macOS
 
