@@ -14,6 +14,8 @@ public partial class App : System.Windows.Application
     private PetWorld? _world;
     private Mutex? _singleInstanceMutex;
     private bool _ownsSingleInstanceMutex;
+    private bool _startupCompleted;
+    private DispatcherTimer? _startupStabilityTimer;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -40,19 +42,46 @@ public partial class App : System.Windows.Application
                 return;
             }
 
-            PreloadUiAutomationProvider();
-            RuntimeLog.Write($"Started v{typeof(App).Assembly.GetName().Version} on Windows {Compat.WindowsVersion}; safe rendering: true.");
+            var previousStartupWasIncomplete = StartupGuard.Begin();
+            var forceCompatibilityMode = e.Args.Any(argument =>
+                string.Equals(argument, "--safe-mode", StringComparison.OrdinalIgnoreCase));
+            var forceFullMode = e.Args.Any(argument =>
+                string.Equals(argument, "--full-mode", StringComparison.OrdinalIgnoreCase));
+            var automaticCompatibilityMode = Compat.IsWindows11_24H2 || previousStartupWasIncomplete;
+            Compat.ConfigureCompatibilityMode(
+                forceCompatibilityMode || (!forceFullMode && automaticCompatibilityMode));
+            RuntimeLog.Write(
+                $"Started v{typeof(App).Assembly.GetName().Version} on Windows {Compat.WindowsVersion}; " +
+                $"safe rendering: true; compatibility mode: {Compat.UseCompatibilityMode}; " +
+                $"previous incomplete startup: {previousStartupWasIncomplete}.");
+
+            StartupGuard.UpdatePhase("ui-automation");
+            if (Compat.UseCompatibilityMode)
+            {
+                RuntimeLog.Write("Compatibility mode skipped the optional UIAutomationProvider preload.");
+            }
+            else
+            {
+                PreloadUiAutomationProvider();
+            }
+
+            StartupGuard.UpdatePhase("autostart-registration");
             AutostartService.InitializeDefault();
-            if (Compat.IsLegacyWindows)
+            if (Compat.IsLegacyWindows || Compat.UseCompatibilityMode)
             {
                 Timeline.DesiredFrameRateProperty.OverrideMetadata(
                     typeof(Timeline),
                     new FrameworkPropertyMetadata(30));
             }
 
+            StartupGuard.UpdatePhase("creating-pet-world");
             RuntimeLog.Write("Creating desktop pet windows.");
             _world = new PetWorld();
+            StartupGuard.UpdatePhase("showing-pet-windows");
             _world.Start();
+            _startupCompleted = true;
+            StartupGuard.UpdatePhase("startup-completed-stability-window");
+            BeginStartupStabilityWindow();
             RuntimeLog.Write("Startup completed.");
         }
         catch (Exception exception)
@@ -65,6 +94,21 @@ public partial class App : System.Windows.Application
                 MessageBoxImage.Error);
             Shutdown(-1);
         }
+    }
+
+    private void BeginStartupStabilityWindow()
+    {
+        _startupStabilityTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(30)
+        };
+        _startupStabilityTimer.Tick += (_, _) =>
+        {
+            _startupStabilityTimer?.Stop();
+            StartupGuard.MarkStable();
+            RuntimeLog.Write("Startup stability window completed.");
+        };
+        _startupStabilityTimer.Start();
     }
 
     private static void PreloadUiAutomationProvider()
@@ -110,6 +154,11 @@ public partial class App : System.Windows.Application
     protected override void OnExit(ExitEventArgs e)
     {
         RuntimeLog.Write("Exited normally.");
+        _startupStabilityTimer?.Stop();
+        if (_startupCompleted && e.ApplicationExitCode == 0)
+        {
+            StartupGuard.MarkStable();
+        }
         if (_ownsSingleInstanceMutex)
         {
             _singleInstanceMutex?.ReleaseMutex();

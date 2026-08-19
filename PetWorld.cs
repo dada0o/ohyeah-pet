@@ -77,7 +77,14 @@ internal sealed class PetWorld
         _lifeTimer.Start();
         _interactionTimer.Start();
         _proximityTimer.Start();
-        CreateTrayIcon();
+        if (Compat.TrayIconEnabled)
+        {
+            CreateTrayIcon();
+        }
+        else
+        {
+            RuntimeLog.Write("Compatibility mode disabled the optional WinForms tray icon.");
+        }
     }
 
     private void Configure(PetWindow pet)
@@ -1216,6 +1223,7 @@ internal sealed class PetWorld
 
     private void TrackForegroundWindow()
     {
+        if (!Compat.NativeWindowIntegrationEnabled) return;
         var foreground = GetForegroundWindow();
         if (IsUsableHostWindow(foreground))
         {
@@ -1225,6 +1233,12 @@ internal sealed class PetWorld
 
     private bool TryGetPreferredHostWindow(out IntPtr window, out NativeRect rectangle)
     {
+        if (!Compat.NativeWindowIntegrationEnabled)
+        {
+            window = IntPtr.Zero;
+            rectangle = default;
+            return false;
+        }
         TrackForegroundWindow();
         if (IsUsableHostWindow(_lastHostWindow) && TryGetVisibleWindowBounds(_lastHostWindow, out rectangle))
         {

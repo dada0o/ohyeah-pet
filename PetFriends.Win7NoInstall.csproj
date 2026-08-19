@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ApplicationDefinition Remove="App.xaml" />
-    <Compile Remove="App.xaml.cs;AutostartService.cs;Compat.cs;PetWindow.cs;CuddleWindow.cs;PetWorld.cs;RuntimeLog.cs" />
+    <Compile Remove="App.xaml.cs;AutostartService.cs;Compat.cs;PetWindow.cs;CuddleWindow.cs;PetWorld.cs;RuntimeLog.cs;StartupGuard.cs" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net35" Version="1.0.3" PrivateAssets="All" />
   </ItemGroup>
 

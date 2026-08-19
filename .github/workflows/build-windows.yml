@@ -95,9 +95,9 @@ jobs:
           }
 
           $process = Start-Process -FilePath $app -PassThru
-          $started = $false
+          $stable = $false
           try {
-            $deadline = (Get-Date).AddSeconds(20)
+            $deadline = (Get-Date).AddSeconds(45)
             do {
               Start-Sleep -Seconds 1
               $process.Refresh()
@@ -107,12 +107,19 @@ jobs:
               }
               if (Test-Path -LiteralPath $logPath) {
                 $log = Get-Content -Raw -LiteralPath $logPath -Encoding UTF8
-                $started = $log.Contains("Startup completed.")
+                $stable = $log.Contains("Startup stability window completed.")
               }
-            } while (-not $started -and (Get-Date) -lt $deadline)
+            } while (-not $stable -and (Get-Date) -lt $deadline)
 
-            if (-not $started) {
-              throw "The desktop pet stayed alive but did not complete startup within 20 seconds."
+            if (-not $stable) {
+              throw "The desktop pet stayed alive but did not complete the 30-second startup stability window."
+            }
+            if (-not $log.Contains("compatibility mode: True")) {
+              throw "Build 26100 did not automatically enable compatibility mode.`n$log"
+            }
+            $startupMarker = Join-Path $env:LOCALAPPDATA "PetFriends\startup-in-progress.txt"
+            if (Test-Path -LiteralPath $startupMarker) {
+              throw "The startup guard marker was not cleared after the stability window."
             }
             Write-Host $log
           }
