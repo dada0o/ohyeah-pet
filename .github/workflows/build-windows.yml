@@ -23,8 +23,11 @@ permissions:
 
 jobs:
   build:
-    name: Windows 10/11 x64 and Windows 7
-    runs-on: windows-2022
+    name: Windows 10/11 x64 and Windows 7 (Build 26100)
+    # Windows Server 2025 uses the same 10.0.26100 kernel build as
+    # Windows 11 24H2, so packaging and startup are always exercised on the
+    # exact build family reported by affected users.
+    runs-on: windows-2025
 
     steps:
       - name: Check out repository
@@ -53,6 +56,79 @@ jobs:
           dotnet restore PetFriends.csproj -r win-x64
           ./build-windows.ps1 -Version $version -Architecture x64 -InnoSetupCompiler $iscc
           ./build-win7-no-install-package.ps1 -Version $version
+
+      - name: Install and launch smoke test on Build 26100
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $osVersion = [Environment]::OSVersion.Version
+          Write-Host "Runner OS version: $osVersion"
+          if ($osVersion.Build -ne 26100) {
+            throw "Expected the Windows 11 24H2 / Server 2025 build family 26100, got $osVersion."
+          }
+
+          $version = ([xml](Get-Content -LiteralPath PetFriends.csproj)).Project.PropertyGroup.Version
+          $installer = Join-Path $PWD "dist\Windows10-11-x64\PetFriends-v$version-Windows10-11-x64.exe"
+          $installDir = Join-Path $env:RUNNER_TEMP "PetFriends-24H2-Smoke"
+          $logPath = Join-Path $env:LOCALAPPDATA "PetFriends\runtime.log"
+          if (Test-Path -LiteralPath $installDir) {
+            Remove-Item -LiteralPath $installDir -Recurse -Force
+          }
+          if (Test-Path -LiteralPath $logPath) {
+            Remove-Item -LiteralPath $logPath -Force
+          }
+
+          $setup = Start-Process -FilePath $installer -ArgumentList @(
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NORESTART",
+            "/DIR=$installDir",
+            "/MERGETASKS=!desktopicon"
+          ) -Wait -PassThru
+          if ($setup.ExitCode -ne 0) {
+            throw "The installer exited with code $($setup.ExitCode)."
+          }
+
+          $app = Join-Path $installDir "小欧公爵和小耶牧师桌宠.exe"
+          if (-not (Test-Path -LiteralPath $app)) {
+            throw "The installed desktop pet executable was not found: $app"
+          }
+
+          $process = Start-Process -FilePath $app -PassThru
+          $stable = $false
+          try {
+            $deadline = (Get-Date).AddSeconds(45)
+            do {
+              Start-Sleep -Seconds 1
+              $process.Refresh()
+              if ($process.HasExited) {
+                $log = if (Test-Path -LiteralPath $logPath) { Get-Content -Raw -LiteralPath $logPath -Encoding UTF8 } else { "<no runtime log>" }
+                throw "The desktop pet exited during startup with code $($process.ExitCode).`n$log"
+              }
+              if (Test-Path -LiteralPath $logPath) {
+                $log = Get-Content -Raw -LiteralPath $logPath -Encoding UTF8
+                $stable = $log.Contains("Startup stability window completed.")
+              }
+            } while (-not $stable -and (Get-Date) -lt $deadline)
+
+            if (-not $stable) {
+              throw "The desktop pet stayed alive but did not complete the 30-second startup stability window."
+            }
+            if (-not $log.Contains("compatibility mode: True")) {
+              throw "Build 26100 did not automatically enable compatibility mode.`n$log"
+            }
+            $startupMarker = Join-Path $env:LOCALAPPDATA "PetFriends\startup-in-progress.txt"
+            if (Test-Path -LiteralPath $startupMarker) {
+              throw "The startup guard marker was not cleared after the stability window."
+            }
+            Write-Host $log
+          }
+          finally {
+            $process.Refresh()
+            if (-not $process.HasExited) {
+              Stop-Process -Id $process.Id -Force
+            }
+          }
 
       - name: Upload Windows build artifact
         uses: actions/upload-artifact@v4
